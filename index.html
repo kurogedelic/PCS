@@ -5,16 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PCS-100</title>
   <style>
-    html, body { margin: 0; width: 100%; height: 100%; }
+    :root { --grid: 17.78mm; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-width: 100%; min-height: 100%; }
     body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      overflow: auto;
+      background: #000;
+    }
+    .panel {
+      width: 152.4mm; /* 30HP × 5.08mm */
+      height: 128.5mm;
+      flex: none;
+      border: 2px solid #454545;
       background-color: #000;
       background-image:
         linear-gradient(to right, rgba(255,255,255,.16) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(255,255,255,.16) 1px, transparent 1px);
-      background-size: 17.78mm 17.78mm;
-      background-position: 0 0;
+      background-size: var(--grid) var(--grid);
+      /* Put a grid intersection at the exact panel center. */
+      background-position:
+        calc(50% + 8.89mm) calc(50% + 8.89mm);
     }
   </style>
 </head>
-<body></body>
+<body>
+  <main class="panel" aria-label="PCS-100 30HP × 128.5mm panel"></main>
+</body>
 </html>
