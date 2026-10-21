@@ -35,8 +35,8 @@
     }
     .module-outline {
       position: absolute;
-      top: 8.89mm;
-      bottom: 8.89mm;
+      top: 10.91mm;
+      bottom: 10.91mm;
       left: 13.97mm;
       width: 17.78mm;
       border: 0.5mm solid #fff;
@@ -73,8 +73,8 @@
     /* Large MXR-style knob: centered between grid intersections (2 × 2 cells). */
     .knob-large {
       position: absolute;
-      left: calc(22.86mm + 1.5 * var(--grid));
-      top: calc(19.8mm + 0.5 * var(--grid));
+      left: 102.87mm;
+      top: 46.47mm;
       width: 25mm;
       height: 25mm;
       transform: translate(-50%, -50%);
@@ -92,6 +92,54 @@
       transform: translateX(-50%);
       background: #fff;
       border-radius: 0.3mm;
+    }
+    .knob-small, .toggle {
+      position: absolute;
+      transform: translate(-50%, -50%);
+    }
+    .knob-small {
+      width: 9mm;
+      height: 9mm;
+      border-radius: 50%;
+      background: #171717;
+      border: 0.8mm solid #777;
+    }
+    .knob-small::after {
+      content: "";
+      position: absolute;
+      top: 0.7mm;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0.7mm;
+      height: 2.8mm;
+      background: white;
+    }
+    .toggle {
+      width: 7mm;
+      height: 7mm;
+      border: 0.6mm solid #999;
+      border-radius: 50%;
+      background: #222;
+    }
+    .toggle::after {
+      content: "";
+      position: absolute;
+      width: 1.4mm;
+      height: 6mm;
+      left: 50%;
+      top: -2mm;
+      transform: translateX(-50%);
+      border-radius: 0.6mm;
+      background: #ddd;
+    }
+    .part-label {
+      position: absolute;
+      transform: translateX(-50%);
+      font: 500 8px "Jost", sans-serif;
+      color: #ccc;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      pointer-events: none;
     }
     .mounting-slot {
       position: absolute;
@@ -117,17 +165,55 @@
     <div class="jack" style="--row:3" aria-label="Jack 4"></div>
     <div class="jack" style="--row:4" aria-label="Jack 5"></div>
     <div class="jack" style="--row:5" aria-label="Jack 6"></div>
-    <!-- Rough module zoning; positions are provisional. -->
-    <div class="module-block" style="left:35mm;top:8.89mm;width:42mm;height:53mm"><span>VCC</span></div>
-    <div class="module-block" style="left:35mm;top:64.89mm;width:42mm;height:54.72mm"><span>PO</span></div>
-    <div class="module-block" style="left:80mm;top:8.89mm;width:55mm;height:110.72mm"><span>VCW</span></div>
-    <div class="module-block" style="left:138mm;top:8.89mm;width:36mm;height:53mm"><span>WF</span></div>
-    <div class="module-block" style="left:138mm;top:64.89mm;width:36mm;height:54.72mm"><span>VCA</span></div>
-    <div class="module-block" style="left:177mm;top:8.89mm;width:28mm;height:53mm"><span>EG</span></div>
-    <div class="module-block" style="left:177mm;top:64.89mm;width:28mm;height:54.72mm"><span>LFO</span></div>
-    <div class="module-block" style="left:208mm;top:8.89mm;width:22mm;height:53mm"><span>ATT</span></div>
-    <div class="module-block" style="left:208mm;top:64.89mm;width:22mm;height:54.72mm"><span>VCA ×2</span></div>
+    <!-- Rough module zoning, snapped to the 8.89mm subgrid. -->
+    <div class="module-block" style="left:40.64mm;top:10.91mm;width:35.56mm;height:53.34mm"><span>VCC</span></div>
+    <div class="module-block" style="left:40.64mm;top:64.25mm;width:35.56mm;height:53.34mm"><span>PO</span></div>
+    <div class="module-block" style="left:85.09mm;top:10.91mm;width:44.45mm;height:106.68mm"><span>VCW</span></div>
+    <div class="module-block" style="left:138.43mm;top:10.91mm;width:35.56mm;height:53.34mm"><span>WF</span></div>
+    <div class="module-block" style="left:138.43mm;top:64.25mm;width:35.56mm;height:53.34mm"><span>VCA</span></div>
+    <div class="module-block" style="left:182.88mm;top:10.91mm;width:26.67mm;height:53.34mm"><span>EG</span></div>
+    <div class="module-block" style="left:182.88mm;top:64.25mm;width:26.67mm;height:53.34mm"><span>LFO</span></div>
+    <div class="module-block" style="left:218.44mm;top:10.91mm;width:17.78mm;height:53.34mm"><span>ATT</span></div>
+    <div class="module-block" style="left:218.44mm;top:64.25mm;width:17.78mm;height:53.34mm"><span>MINI VCA</span></div>
     <div class="knob-large" aria-label="Large MXR-style knob"></div>
+    <div class="knob-small" style="left:49.53mm;top:35.5mm" aria-label="FREQ"></div>
+    <div class="part-label" style="left:49.53mm;top:41.5mm">FREQ</div>
+    <div class="toggle" style="left:67.31mm;top:35.5mm" aria-label="SYNC"></div>
+    <div class="part-label" style="left:67.31mm;top:41.5mm">SYNC</div>
+    <div class="knob-small" style="left:49.53mm;top:88mm" aria-label="AMOUNT"></div>
+    <div class="part-label" style="left:49.53mm;top:94mm">AMOUNT</div>
+    <div class="toggle" style="left:67.31mm;top:88mm" aria-label="MODE"></div>
+    <div class="part-label" style="left:67.31mm;top:94mm">MODE</div>
+    <div class="knob-small" style="left:120.65mm;top:46.47mm" aria-label="SHAPE"></div>
+    <div class="part-label" style="left:120.65mm;top:52.47mm">SHAPE</div>
+    <div class="knob-small" style="left:102.87mm;top:82.03mm" aria-label="WINDOW"></div>
+    <div class="part-label" style="left:102.87mm;top:88.03mm">WINDOW</div>
+    <div class="knob-small" style="left:120.65mm;top:82.03mm" aria-label="RES"></div>
+    <div class="part-label" style="left:120.65mm;top:88.03mm">RES</div>
+    <div class="toggle" style="left:111.76mm;top:103mm" aria-label="MODE"></div>
+    <div class="part-label" style="left:111.76mm;top:109mm">MODE</div>
+    <div class="knob-small" style="left:156.21mm;top:35.5mm" aria-label="FOLD"></div>
+    <div class="part-label" style="left:156.21mm;top:41.5mm">FOLD</div>
+    <div class="knob-small" style="left:156.21mm;top:88mm" aria-label="LEVEL"></div>
+    <div class="part-label" style="left:156.21mm;top:94mm">LEVEL</div>
+    <div class="knob-small" style="left:191.77mm;top:25mm" aria-label="A"></div>
+    <div class="part-label" style="left:191.77mm;top:31mm">A</div>
+    <div class="knob-small" style="left:200.66mm;top:36mm" aria-label="D"></div>
+    <div class="part-label" style="left:200.66mm;top:42mm">D</div>
+    <div class="knob-small" style="left:191.77mm;top:47mm" aria-label="S"></div>
+    <div class="part-label" style="left:191.77mm;top:53mm">S</div>
+    <div class="knob-small" style="left:200.66mm;top:57mm" aria-label="R"></div>
+    <div class="part-label" style="left:200.66mm;top:63mm">R</div>
+    <div class="knob-small" style="left:196.215mm;top:88mm" aria-label="RATE"></div>
+    <div class="part-label" style="left:196.215mm;top:94mm">RATE</div>
+    <div class="toggle" style="left:196.215mm;top:106mm" aria-label="WAVE"></div>
+    <div class="part-label" style="left:196.215mm;top:112mm">WAVE</div>
+    <div class="knob-small" style="left:227.33mm;top:35.5mm" aria-label="ATT"></div>
+    <div class="part-label" style="left:227.33mm;top:41.5mm">ATT</div>
+    <div class="knob-small" style="left:227.33mm;top:83mm" aria-label="VCA1"></div>
+    <div class="part-label" style="left:227.33mm;top:89mm">VCA1</div>
+    <div class="knob-small" style="left:227.33mm;top:105mm" aria-label="VCA2"></div>
+    <div class="part-label" style="left:227.33mm;top:111mm">VCA2</div>
     <div class="mounting-slot left top" aria-label="Top-left mounting slot"></div>
     <div class="mounting-slot right top" aria-label="Top-right mounting slot"></div>
     <div class="mounting-slot left bottom" aria-label="Bottom-left mounting slot"></div>
