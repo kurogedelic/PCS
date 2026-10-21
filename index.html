@@ -30,6 +30,15 @@
       background-position:
         calc(50% + 8.89mm) calc(50% + 17.78mm);
     }
+    .module-outline {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: calc(50% - 53.34mm - 8.89mm);
+      width: 17.78mm;
+      border: 1mm solid #fff;
+      pointer-events: none;
+    }
     .jack {
       position: absolute;
       left: calc(50% - 53.34mm);
@@ -45,11 +54,14 @@
   </style>
 </head>
 <body>
-  <main class="panel" aria-label="PCS-100 30HP × 128.5mm panel">\n    <div class="jack" style="--row:0" aria-label="Jack 1"></div>
+  <main class="panel" aria-label="PCS-100 30HP × 128.5mm panel">
+    <div class="module-outline" aria-hidden="true"></div>
+    <div class="jack" style="--row:0" aria-label="Jack 1"></div>
     <div class="jack" style="--row:1" aria-label="Jack 2"></div>
     <div class="jack" style="--row:2" aria-label="Jack 3"></div>
     <div class="jack" style="--row:3" aria-label="Jack 4"></div>
     <div class="jack" style="--row:4" aria-label="Jack 5"></div>
-    <div class="jack" style="--row:5" aria-label="Jack 6"></div>\n  </main>
+    <div class="jack" style="--row:5" aria-label="Jack 6"></div>
+  </main>
 </body>
 </html>
