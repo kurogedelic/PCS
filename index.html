@@ -16,7 +16,7 @@
       background: #000;
     }
     .panel {
-      width: 152.4mm; /* 30HP × 5.08mm */
+      width: 243.84mm; /* 48HP × 5.08mm */
       height: 128.5mm;
       flex: none;
       box-shadow: inset 0 0 0 2px #454545;
@@ -26,23 +26,22 @@
         linear-gradient(to right, rgba(255,255,255,.16) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(255,255,255,.16) 1px, transparent 1px);
       background-size: var(--grid) var(--grid);
-      /* Shift grid vertically down by 8.89mm from center alignment. */
-      background-position:
-        calc(50% + 8.89mm) calc(50% + 17.78mm);
+      /* Keep the grid intersections aligned with the first module's jacks. */
+      background-position: 22.86mm 19.8mm;
     }
     .module-outline {
       position: absolute;
       top: 0;
       bottom: 0;
-      left: calc(50% - 53.34mm - 8.89mm);
+      left: 13.97mm;
       width: 17.78mm;
       border: 1mm solid #fff;
       pointer-events: none;
     }
     .jack {
       position: absolute;
-      left: calc(50% - 53.34mm);
-      top: calc(50% + 8.89mm + (var(--row) - 3) * 17.78mm);
+      left: 22.86mm;
+      top: calc(19.8mm + var(--row) * 17.78mm);
       width: 8mm;
       height: 8mm;
       transform: translate(-50%, -50%);
@@ -51,10 +50,23 @@
       background: #111;
       box-shadow: 0 0 0 0.35mm #333, inset 0 0 0 0.7mm #333;
     }
+    .mounting-slot {
+      position: absolute;
+      width: 6mm;
+      height: 3.2mm;
+      border: 0.35mm solid #aaa;
+      border-radius: 1.6mm;
+      background: #000;
+      transform: translate(-50%, -50%);
+    }
+    .mounting-slot.left { left: 7.5mm; }
+    .mounting-slot.right { left: calc(100% - 7.5mm); }
+    .mounting-slot.top { top: 3mm; }
+    .mounting-slot.bottom { top: calc(100% - 3mm); }
   </style>
 </head>
 <body>
-  <main class="panel" aria-label="PCS-100 30HP × 128.5mm panel">
+  <main class="panel" aria-label="PCS-100 48HP × 128.5mm panel">
     <div class="module-outline" aria-hidden="true"></div>
     <div class="jack" style="--row:0" aria-label="Jack 1"></div>
     <div class="jack" style="--row:1" aria-label="Jack 2"></div>
@@ -62,6 +74,10 @@
     <div class="jack" style="--row:3" aria-label="Jack 4"></div>
     <div class="jack" style="--row:4" aria-label="Jack 5"></div>
     <div class="jack" style="--row:5" aria-label="Jack 6"></div>
+    <div class="mounting-slot left top" aria-label="Top-left mounting slot"></div>
+    <div class="mounting-slot right top" aria-label="Top-right mounting slot"></div>
+    <div class="mounting-slot left bottom" aria-label="Bottom-left mounting slot"></div>
+    <div class="mounting-slot right bottom" aria-label="Bottom-right mounting slot"></div>
   </main>
 </body>
 </html>
