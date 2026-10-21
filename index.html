@@ -54,6 +54,29 @@
       background: #111;
       box-shadow: 0 0 0 0.35mm #333, inset 0 0 0 0.7mm #333;
     }
+    /* Large MXR-style knob: centered between grid intersections (2 × 2 cells). */
+    .knob-large {
+      position: absolute;
+      left: calc(22.86mm + 1.5 * var(--grid));
+      top: calc(19.8mm + 0.5 * var(--grid));
+      width: 25mm;
+      height: 25mm;
+      transform: translate(-50%, -50%);
+      border: 2mm solid #383838;
+      border-radius: 50%;
+      background: #101010;
+    }
+    .knob-large::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 2mm;
+      width: 1.2mm;
+      height: 9mm;
+      transform: translateX(-50%);
+      background: #fff;
+      border-radius: 0.3mm;
+    }
     .mounting-slot {
       position: absolute;
       width: 6mm;
@@ -78,6 +101,7 @@
     <div class="jack" style="--row:3" aria-label="Jack 4"></div>
     <div class="jack" style="--row:4" aria-label="Jack 5"></div>
     <div class="jack" style="--row:5" aria-label="Jack 6"></div>
+    <div class="knob-large" aria-label="Large MXR-style knob"></div>
     <div class="mounting-slot left top" aria-label="Top-left mounting slot"></div>
     <div class="mounting-slot right top" aria-label="Top-right mounting slot"></div>
     <div class="mounting-slot left bottom" aria-label="Bottom-left mounting slot"></div>
