@@ -41,7 +41,7 @@
     }
     .module-block span {
       position: absolute;
-      top: 1.5mm;
+      top: 1.8mm;
       left: 3mm;
       font-size: 10px;
       font-weight: 600;
@@ -50,8 +50,6 @@
     }
     .jack {
       position: absolute;
-      left: calc(22.86mm + var(--col) * 17.78mm);
-      top: calc(19.8mm + var(--row) * 17.78mm);
       width: 8mm;
       height: 8mm;
       transform: translate(-50%, -50%);
@@ -123,12 +121,13 @@
     .part-label {
       position: absolute;
       transform: translateX(-50%);
-      font: 500 7px "Jost", sans-serif;
+      font: 500 8px "Jost", sans-serif;
       color: #ccc;
       letter-spacing: 0.04em;
       white-space: nowrap;
       pointer-events: none;
     }
+    .jack-label { position: absolute; transform: translateX(-50%); font: 500 8px "Jost", sans-serif; color: #ddd; white-space: nowrap; pointer-events: none; }
     .mounting-slot {
       position: absolute;
       width: 6mm;
@@ -146,7 +145,7 @@
 </head>
 <body>
   <main class="panel" aria-label="PCS-100 48HP × 128.5mm panel">
-    <!-- Each full-height module contains its own upper jacks and lower controls. -->
+    <!-- Jack and control zones remain inside each individual module. -->
     <div class="module-block" style="left:13.97mm;top:10.91mm;width:35.56mm;height:106.68mm"><span>VCC</span></div>
     <div class="module-block" style="left:49.53mm;top:10.91mm;width:35.56mm;height:106.68mm"><span>PO</span></div>
     <div class="module-block" style="left:85.09mm;top:10.91mm;width:53.34mm;height:106.68mm"><span>VCW</span></div>
@@ -154,81 +153,81 @@
     <div class="module-block" style="left:156.21mm;top:10.91mm;width:17.78mm;height:106.68mm"><span>VCA</span></div>
     <div class="module-block" style="left:173.99mm;top:10.91mm;width:35.56mm;height:106.68mm"><span>EG</span></div>
     <div class="module-block" style="left:209.55mm;top:10.91mm;width:17.78mm;height:106.68mm"><span>UTIL</span></div>
-    <div class="jack" style="--col:0;--row:0" aria-label="1V/OCT"></div>
-    <div class="part-label" style="left:22.86mm;top:25mm">1V/OCT</div>
-    <div class="jack" style="--col:1;--row:0" aria-label="CLK IN"></div>
-    <div class="part-label" style="left:40.64mm;top:25mm">CLK IN</div>
-    <div class="jack" style="--col:0;--row:1" aria-label="CLK OUT"></div>
-    <div class="part-label" style="left:22.86mm;top:42.78mm">CLK OUT</div>
-    <div class="jack" style="--col:1;--row:1" aria-label="PHASE OUT"></div>
-    <div class="part-label" style="left:40.64mm;top:42.78mm">PHASE OUT</div>
-    <div class="jack" style="--col:2;--row:0" aria-label="PHASE IN"></div>
-    <div class="part-label" style="left:58.42mm;top:25mm">PHASE IN</div>
-    <div class="jack" style="--col:3;--row:0" aria-label="PO CV"></div>
-    <div class="part-label" style="left:76.2mm;top:25mm">PO CV</div>
-    <div class="jack" style="--col:2;--row:1" aria-label="PO OUT"></div>
-    <div class="part-label" style="left:58.42mm;top:42.78mm">PO OUT</div>
-    <div class="jack" style="--col:3;--row:1" aria-label="PO IN"></div>
-    <div class="part-label" style="left:76.2mm;top:42.78mm">PO IN</div>
-    <div class="jack" style="--col:4;--row:0" aria-label="WINDOW CV"></div>
-    <div class="part-label" style="left:93.98mm;top:25mm">WINDOW CV</div>
-    <div class="jack" style="--col:5;--row:0" aria-label="RES CV"></div>
-    <div class="part-label" style="left:111.76mm;top:25mm">RES CV</div>
-    <div class="jack" style="--col:6;--row:0" aria-label="VCW OUT"></div>
-    <div class="part-label" style="left:129.54mm;top:25mm">VCW OUT</div>
-    <div class="jack" style="--col:4;--row:1" aria-label="RAMP IN"></div>
-    <div class="part-label" style="left:93.98mm;top:42.78mm">RAMP IN</div>
-    <div class="jack" style="--col:7;--row:0" aria-label="WF IN"></div>
-    <div class="part-label" style="left:147.32mm;top:25mm">WF IN</div>
-    <div class="jack" style="--col:7;--row:1" aria-label="WF OUT"></div>
-    <div class="part-label" style="left:147.32mm;top:42.78mm">WF OUT</div>
-    <div class="jack" style="--col:8;--row:0" aria-label="VCA IN"></div>
-    <div class="part-label" style="left:165.1mm;top:25mm">VCA IN</div>
-    <div class="jack" style="--col:8;--row:1" aria-label="VCA OUT"></div>
-    <div class="part-label" style="left:165.1mm;top:42.78mm">VCA OUT</div>
-    <div class="jack" style="--col:9;--row:0" aria-label="GATE"></div>
-    <div class="part-label" style="left:182.88mm;top:25mm">GATE</div>
-    <div class="jack" style="--col:10;--row:0" aria-label="EG OUT"></div>
-    <div class="part-label" style="left:200.66mm;top:25mm">EG OUT</div>
-    <div class="jack" style="--col:9;--row:1" aria-label="LFO OUT"></div>
-    <div class="part-label" style="left:182.88mm;top:42.78mm">LFO OUT</div>
-    <div class="jack" style="--col:10;--row:1" aria-label="VCA CV"></div>
-    <div class="part-label" style="left:200.66mm;top:42.78mm">VCA CV</div>
-    <div class="jack" style="--col:11;--row:0" aria-label="ATT IN"></div>
-    <div class="part-label" style="left:218.44mm;top:25mm">ATT IN</div>
-    <div class="jack" style="--col:11;--row:1" aria-label="ATT OUT"></div>
-    <div class="part-label" style="left:218.44mm;top:42.78mm">ATT OUT</div>
+    <div class="jack" style="left:22.86mm;top:28.69mm" aria-label="V/OCT"></div>
+    <div class="jack-label" style="left:22.86mm;top:33.89mm">V/OCT</div>
+    <div class="jack" style="left:40.64mm;top:28.69mm" aria-label="CLK IN"></div>
+    <div class="jack-label" style="left:40.64mm;top:33.89mm">CLK IN</div>
+    <div class="jack" style="left:22.86mm;top:46.47mm" aria-label="CLK OUT"></div>
+    <div class="jack-label" style="left:22.86mm;top:51.67mm">CLK OUT</div>
+    <div class="jack" style="left:40.64mm;top:46.47mm" aria-label="PH/PO"></div>
+    <div class="jack-label" style="left:40.64mm;top:51.67mm">PH/PO</div>
+    <div class="jack" style="left:58.42mm;top:28.69mm" aria-label="PH IN"></div>
+    <div class="jack-label" style="left:58.42mm;top:33.89mm">PH IN</div>
+    <div class="jack" style="left:76.20mm;top:28.69mm" aria-label="PO CV"></div>
+    <div class="jack-label" style="left:76.20mm;top:33.89mm">PO CV</div>
+    <div class="jack" style="left:58.42mm;top:46.47mm" aria-label="PO IN"></div>
+    <div class="jack-label" style="left:58.42mm;top:51.67mm">PO IN</div>
+    <div class="jack" style="left:76.20mm;top:46.47mm" aria-label="MOD"></div>
+    <div class="jack-label" style="left:76.20mm;top:51.67mm">MOD</div>
+    <div class="jack" style="left:93.98mm;top:28.69mm" aria-label="WIN CV"></div>
+    <div class="jack-label" style="left:93.98mm;top:33.89mm">WIN CV</div>
+    <div class="jack" style="left:111.76mm;top:28.69mm" aria-label="RES CV"></div>
+    <div class="jack-label" style="left:111.76mm;top:33.89mm">RES CV</div>
+    <div class="jack" style="left:129.54mm;top:28.69mm" aria-label="VCW OUT"></div>
+    <div class="jack-label" style="left:129.54mm;top:33.89mm">VCW OUT</div>
+    <div class="jack" style="left:93.98mm;top:46.47mm" aria-label="RAMP IN"></div>
+    <div class="jack-label" style="left:93.98mm;top:51.67mm">RAMP IN</div>
+    <div class="jack" style="left:147.32mm;top:28.69mm" aria-label="WF IN"></div>
+    <div class="jack-label" style="left:147.32mm;top:33.89mm">WF IN</div>
+    <div class="jack" style="left:147.32mm;top:46.47mm" aria-label="WF OUT"></div>
+    <div class="jack-label" style="left:147.32mm;top:51.67mm">WF OUT</div>
+    <div class="jack" style="left:165.10mm;top:28.69mm" aria-label="VCA IN"></div>
+    <div class="jack-label" style="left:165.10mm;top:33.89mm">VCA IN</div>
+    <div class="jack" style="left:165.10mm;top:46.47mm" aria-label="VCA OUT"></div>
+    <div class="jack-label" style="left:165.10mm;top:51.67mm">VCA OUT</div>
+    <div class="jack" style="left:182.88mm;top:28.69mm" aria-label="GATE"></div>
+    <div class="jack-label" style="left:182.88mm;top:33.89mm">GATE</div>
+    <div class="jack" style="left:200.66mm;top:28.69mm" aria-label="EG OUT"></div>
+    <div class="jack-label" style="left:200.66mm;top:33.89mm">EG OUT</div>
+    <div class="jack" style="left:182.88mm;top:46.47mm" aria-label="LFO OUT"></div>
+    <div class="jack-label" style="left:182.88mm;top:51.67mm">LFO OUT</div>
+    <div class="jack" style="left:200.66mm;top:46.47mm" aria-label="VCA CV"></div>
+    <div class="jack-label" style="left:200.66mm;top:51.67mm">VCA CV</div>
+    <div class="jack" style="left:218.44mm;top:28.69mm" aria-label="ATT IN"></div>
+    <div class="jack-label" style="left:218.44mm;top:33.89mm">ATT IN</div>
+    <div class="jack" style="left:218.44mm;top:46.47mm" aria-label="ATT OUT"></div>
+    <div class="jack-label" style="left:218.44mm;top:51.67mm">ATT OUT</div>
     <div class="knob-small" style="left:22.86mm;top:73.14mm" aria-label="FREQ"></div>
-    <div class="part-label" style="left:22.86mm;top:78.64mm">FREQ</div>
+    <div class="part-label" style="left:22.86mm;top:78.94mm">FREQ</div>
     <div class="toggle" style="left:40.64mm;top:90.92mm" aria-label="SYNC"></div>
-    <div class="part-label" style="left:40.64mm;top:96.42mm">SYNC</div>
+    <div class="part-label" style="left:40.64mm;top:96.72mm">SYNC</div>
     <div class="knob-small" style="left:58.42mm;top:73.14mm" aria-label="AMOUNT"></div>
-    <div class="part-label" style="left:58.42mm;top:78.64mm">AMOUNT</div>
-    <div class="toggle" style="left:76.2mm;top:90.92mm" aria-label="MODE"></div>
-    <div class="part-label" style="left:76.2mm;top:96.42mm">MODE</div>
+    <div class="part-label" style="left:58.42mm;top:78.94mm">AMOUNT</div>
+    <div class="toggle" style="left:76.20mm;top:90.92mm" aria-label="MODE"></div>
+    <div class="part-label" style="left:76.20mm;top:96.72mm">MODE</div>
     <div class="knob-large" style="left:111.76mm;top:90.92mm" aria-label="VCW large knob"></div>
     <div class="knob-small" style="left:93.98mm;top:73.14mm" aria-label="SHAPE"></div>
-    <div class="part-label" style="left:93.98mm;top:78.64mm">SHAPE</div>
+    <div class="part-label" style="left:93.98mm;top:78.94mm">SHAPE</div>
     <div class="knob-small" style="left:129.54mm;top:73.14mm" aria-label="WINDOW"></div>
-    <div class="part-label" style="left:129.54mm;top:78.64mm">WINDOW</div>
-    <div class="toggle" style="left:93.98mm;top:108.7mm" aria-label="MODE"></div>
-    <div class="part-label" style="left:93.98mm;top:114.2mm">MODE</div>
+    <div class="part-label" style="left:129.54mm;top:78.94mm">WINDOW</div>
+    <div class="toggle" style="left:93.98mm;top:108.70mm" aria-label="MODE"></div>
+    <div class="part-label" style="left:93.98mm;top:114.50mm">MODE</div>
     <div class="knob-small" style="left:147.32mm;top:90.92mm" aria-label="FOLD"></div>
-    <div class="part-label" style="left:147.32mm;top:96.42mm">FOLD</div>
-    <div class="knob-small" style="left:165.1mm;top:90.92mm" aria-label="LEVEL"></div>
-    <div class="part-label" style="left:165.1mm;top:96.42mm">LEVEL</div>
+    <div class="part-label" style="left:147.32mm;top:96.72mm">FOLD</div>
+    <div class="knob-small" style="left:165.10mm;top:90.92mm" aria-label="LEVEL"></div>
+    <div class="part-label" style="left:165.10mm;top:96.72mm">LEVEL</div>
     <div class="knob-small" style="left:182.88mm;top:73.14mm" aria-label="A"></div>
-    <div class="part-label" style="left:182.88mm;top:78.64mm">A</div>
+    <div class="part-label" style="left:182.88mm;top:78.94mm">A</div>
     <div class="knob-small" style="left:200.66mm;top:73.14mm" aria-label="D"></div>
-    <div class="part-label" style="left:200.66mm;top:78.64mm">D</div>
-    <div class="knob-small" style="left:182.88mm;top:108.7mm" aria-label="S"></div>
-    <div class="part-label" style="left:182.88mm;top:114.2mm">S</div>
-    <div class="knob-small" style="left:200.66mm;top:108.7mm" aria-label="R"></div>
-    <div class="part-label" style="left:200.66mm;top:114.2mm">R</div>
+    <div class="part-label" style="left:200.66mm;top:78.94mm">D</div>
+    <div class="knob-small" style="left:182.88mm;top:108.70mm" aria-label="S"></div>
+    <div class="part-label" style="left:182.88mm;top:114.50mm">S</div>
+    <div class="knob-small" style="left:200.66mm;top:108.70mm" aria-label="R"></div>
+    <div class="part-label" style="left:200.66mm;top:114.50mm">R</div>
     <div class="knob-small" style="left:218.44mm;top:73.14mm" aria-label="LFO"></div>
-    <div class="part-label" style="left:218.44mm;top:78.64mm">LFO</div>
-    <div class="knob-small" style="left:218.44mm;top:108.7mm" aria-label="ATT"></div>
-    <div class="part-label" style="left:218.44mm;top:114.2mm">ATT</div>
+    <div class="part-label" style="left:218.44mm;top:78.94mm">LFO</div>
+    <div class="knob-small" style="left:218.44mm;top:108.70mm" aria-label="ATT"></div>
+    <div class="part-label" style="left:218.44mm;top:114.50mm">ATT</div>
     <div class="mounting-slot left top" aria-label="Top-left mounting slot"></div>
     <div class="mounting-slot right top" aria-label="Top-right mounting slot"></div>
     <div class="mounting-slot left bottom" aria-label="Bottom-left mounting slot"></div>
