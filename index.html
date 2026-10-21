@@ -41,6 +41,21 @@
   .mounting-slot{position:absolute;width:6mm;height:3.2mm;transform:translate(-50%,-50%);border:.35mm solid #aaa;border-radius:1.6mm;background:#0a0a0a}
   .mounting-slot.left{left:7.5mm}.mounting-slot.right{left:calc(100% - 7.5mm)}
   .mounting-slot.top{top:3mm}.mounting-slot.bottom{top:calc(100% - 3mm)}
+
+  body{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:18px;padding:20px}
+  .audio-console{width:min(100%,900px);color:#e8e8e6;font:14px Jost,Arial,sans-serif;border:1px solid #494949;border-radius:8px;padding:14px 18px;background:#1b1b1b}
+  .audio-row{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+  .audio-console button{background:#eee;color:#111;border:0;border-radius:4px;padding:9px 16px;font:600 13px Jost;cursor:pointer}
+  .audio-console button:focus-visible,.panel .knob:focus-visible{outline:2px solid #fff;outline-offset:3px}
+  .audio-console .status{color:#aaa;font-size:12px}
+  .audio-console label{display:flex;align-items:center;gap:7px}
+  .audio-console input[type=range]{accent-color:#e9e9e9;width:130px}
+  .audio-console .hint{margin:9px 0 0;color:#aaa;font-size:12px}
+  .panel .knob{cursor:ns-resize;touch-action:none}
+  .panel .knob:after{content:"";position:absolute;inset:-2mm;border-radius:50%}
+  .shape-slider{cursor:ew-resize;touch-action:none}
+  .slider-handle{pointer-events:none}
+  .panel .knob.active{border-color:white;box-shadow:0 0 0 .5mm #777}
   @media print{body{background:white}.panel{box-shadow:none}}
 </style>
 </head>
@@ -132,4 +147,94 @@
     <div class="mounting-slot left top"></div><div class="mounting-slot right top"></div>
     <div class="mounting-slot left bottom"></div><div class="mounting-slot right bottom"></div>
   </main>
+
+  <section class="audio-console" aria-label="PCS-100 audio prototype">
+    <div class="audio-row">
+      <button id="audio-toggle" type="button">START AUDIO</button>
+      <button id="note-toggle" type="button">GATE ON</button>
+      <label>OUTPUT <input id="master-volume" type="range" min="0" max="100" value="28"><output id="volume-value">28%</output></label>
+      <span class="status" id="audio-status">Audio stopped</span>
+    </div>
+    <p class="hint">パネルのノブは上下ドラッグ、SHAPEは左右ドラッグ。PCはキー A–K で演奏できます。音量を下げてから開始してください。</p>
+  </section>
+  <script>
+  (() => {
+    const params={frequency:110,fine:0,oct:0,increment:0.0625,warp:0.5,width:0.5,reso:0.2,shape:0.35,level:0.75,attack:0.02,decay:0.22,sustain:0.65,release:0.35,lfo:0.3,att:0.5,fold:0};
+    const map={
+      FREQUENCY:{key:'frequency',min:30,max:1000,curve:'log'},
+      FINE:{key:'fine',min:-1,max:1},
+      OCT:{key:'oct',min:-2,max:2,steps:5},
+      INCREMENT:{key:'increment',min:0.005,max:0.45,curve:'log'},
+      WARP:{key:'warp',min:0,max:1},
+      WIDTH:{key:'width',min:0.05,max:0.95},
+      RESO:{key:'reso',min:0,max:1},
+      LEVEL:{key:'level',min:0,max:1},
+      ATTACK:{key:'attack',min:0.002,max:2,curve:'log'},
+      DECAY:{key:'decay',min:0.005,max:3,curve:'log'},
+      SUSTAIN:{key:'sustain',min:0,max:1},
+      RELEASE:{key:'release',min:0.005,max:4,curve:'log'},
+      LFO:{key:'lfo',min:0.05,max:15,curve:'log'},
+      ATT:{key:'att',min:0,max:1}
+    };
+    const normalized=(v,m)=>m.curve==='log'?Math.log(v/m.min)/Math.log(m.max/m.min):(v-m.min)/(m.max-m.min);
+    const denormalized=(t,m)=>m.curve==='log'?m.min*Math.pow(m.max/m.min,t):m.min+(m.max-m.min)*t;
+    const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+    const knobs=[...document.querySelectorAll('.panel .knob')];
+    for(const knob of knobs){
+      const m=map[knob.getAttribute('aria-label')];if(!m){knob.style.cursor='default';continue}
+      const update=()=>{const t=normalized(params[m.key],m);knob.style.setProperty('--rotation',((t-.5)*270)+'deg');knob.style.transform='translate(-50%,-50%) rotate('+((t-.5)*270)+'deg)';knob.title=m.key.toUpperCase()+': '+Number(params[m.key].toFixed(3));knob.setAttribute('role','slider');knob.setAttribute('tabindex','0');knob.setAttribute('aria-valuemin',m.min);knob.setAttribute('aria-valuemax',m.max);knob.setAttribute('aria-valuenow',Number(params[m.key].toFixed(3)))};
+      update();
+      knob.addEventListener('pointerdown',e=>{e.preventDefault();knob.setPointerCapture(e.pointerId);knob.classList.add('active');const y=e.clientY,base=normalized(params[m.key],m);const move=ev=>{let t=clamp(base+(y-ev.clientY)/180,0,1);if(m.steps)t=Math.round(t*(m.steps-1))/(m.steps-1);params[m.key]=denormalized(t,m);update()};const end=()=>{knob.classList.remove('active');knob.removeEventListener('pointermove',move);knob.removeEventListener('pointerup',end);knob.removeEventListener('pointercancel',end)};knob.addEventListener('pointermove',move);knob.addEventListener('pointerup',end);knob.addEventListener('pointercancel',end)});
+      knob.addEventListener('keydown',e=>{if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();let t=normalized(params[m.key],m)+(e.key==='ArrowUp'||e.key==='ArrowRight'?.02:-.02);t=clamp(t,0,1);if(m.steps)t=Math.round(t*(m.steps-1))/(m.steps-1);params[m.key]=denormalized(t,m);update()});
+    }
+    const slider=document.querySelector('.shape-slider'),handle=slider.querySelector('.slider-handle');
+    function setShape(e){const r=slider.getBoundingClientRect();params.shape=clamp((e.clientX-r.left)/r.width,0,1);handle.style.left=(params.shape*100)+'%';slider.title='SHAPE: '+params.shape.toFixed(2)}
+    handle.style.left=(params.shape*100)+'%';
+    slider.addEventListener('pointerdown',e=>{slider.setPointerCapture(e.pointerId);setShape(e)});
+    slider.addEventListener('pointermove',e=>{if(slider.hasPointerCapture(e.pointerId))setShape(e)});
+    let ctx,processor,gain,clockPhase=0,phase=0,env=0,stage='off',gate=false,gateFromButton=false,noteHz=110,lfoPhase=0;
+    const status=document.getElementById('audio-status'),start=document.getElementById('audio-toggle'),gateButton=document.getElementById('note-toggle'),volume=document.getElementById('master-volume');
+    const keys='awsedftgyhujk',semitones=[0,1,2,3,4,5,6,7,8,9,10,11,12];
+    function setGate(on){if(on&&!gate)stage='attack';if(!on&&gate)stage='release';gate=on;gateButton.textContent=gateFromButton?'GATE OFF':'GATE ON'}
+    function waveform(p){
+      const warp=params.warp;
+      let q=p;
+      if(warp<.5)q=Math.pow(q,1+(.5-warp)*6);
+      else q=1-Math.pow(1-q,1+(warp-.5)*6);
+      const sine=Math.sin(2*Math.PI*q);
+      const saw=2*q-1;
+      const width=params.width;
+      const pulse=Math.tanh((q<width?1:-1)*3)*.85;
+      const resonant=Math.sin(2*Math.PI*q*(1+params.reso*8))*Math.sin(Math.PI*q);
+      const waves=[sine,saw,pulse,resonant],x=params.shape*3,i=Math.min(2,Math.floor(x)),t=x-i;
+      const mix=Math.cos(t*Math.PI/2)*waves[i]+Math.sin(t*Math.PI/2)*waves[i+1];
+      return Math.tanh(mix*1.1)*.78;
+    }
+    function render(e){
+      const out=e.outputBuffer.getChannelData(0),sr=e.outputBuffer.sampleRate;
+      for(let i=0;i<out.length;i++){
+        const clockHz=clamp(params.frequency*Math.pow(2,params.oct+params.fine/12)*(noteHz/110),1,sr*.45);
+        clockPhase+=clockHz/sr;
+        if(clockPhase>=1){clockPhase-=Math.floor(clockPhase);phase=(phase+params.increment)%1}
+        lfoPhase=(lfoPhase+params.lfo/sr)%1;
+        const lfo=1+.035*Math.sin(lfoPhase*2*Math.PI)*params.att;
+        if(stage==='attack'){env+=1/(Math.max(.002,params.attack)*sr);if(env>=1){env=1;stage='decay'}}
+        else if(stage==='decay'){env+=(params.sustain-env)/(Math.max(.005,params.decay)*sr);if(Math.abs(env-params.sustain)<.0005)stage='sustain'}
+        else if(stage==='sustain')env=params.sustain;
+        else if(stage==='release'){env+=(-env)/(Math.max(.005,params.release)*sr);if(env<.0001){env=0;stage='off'}}
+        out[i]=waveform(phase)*env*params.level*lfo;
+      }
+    }
+    start.addEventListener('click',async()=>{
+      if(!ctx){ctx=new (window.AudioContext||window.webkitAudioContext)();processor=ctx.createScriptProcessor(1024,0,1);gain=ctx.createGain();gain.gain.value=Number(volume.value)/100;processor.onaudioprocess=render;processor.connect(gain);gain.connect(ctx.destination)}
+      if(ctx.state==='running'){await ctx.suspend();start.textContent='START AUDIO';status.textContent='Audio stopped';setGate(false);gateFromButton=false}
+      else{await ctx.resume();start.textContent='STOP AUDIO';status.textContent='Audio running · '+ctx.sampleRate+' Hz'}
+    });
+    gateButton.addEventListener('click',()=>{gateFromButton=!gateFromButton;setGate(gateFromButton)});
+    volume.addEventListener('input',()=>{document.getElementById('volume-value').textContent=volume.value+'%';if(gain)gain.gain.value=Number(volume.value)/100});
+    const pressed=new Set();
+    window.addEventListener('keydown',e=>{if(e.repeat||e.target.matches('input,button'))return;const idx=keys.indexOf(e.key.toLowerCase());if(idx<0)return;pressed.add(e.key.toLowerCase());noteHz=110*Math.pow(2,semitones[idx]/12);setGate(true)});
+    window.addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(!pressed.has(k))return;pressed.delete(k);if(pressed.size){const last=[...pressed].at(-1);noteHz=110*Math.pow(2,semitones[keys.indexOf(last)]/12)}else setGate(gateFromButton)});
+  })();
+  </script>
 </body></html>
