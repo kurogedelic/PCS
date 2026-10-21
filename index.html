@@ -40,7 +40,23 @@
       left: 13.97mm;
       width: 17.78mm;
       border: 0.5mm solid #fff;
+      border-radius: 2mm;
       pointer-events: none;
+    }
+    .module-block {
+      position: absolute;
+      border: 0.5mm solid #fff;
+      border-radius: 2mm;
+      pointer-events: none;
+    }
+    .module-block span {
+      position: absolute;
+      top: 3mm;
+      left: 3mm;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: #fff;
     }
     .jack {
       position: absolute;
@@ -101,6 +117,16 @@
     <div class="jack" style="--row:3" aria-label="Jack 4"></div>
     <div class="jack" style="--row:4" aria-label="Jack 5"></div>
     <div class="jack" style="--row:5" aria-label="Jack 6"></div>
+    <!-- Rough module zoning; positions are provisional. -->
+    <div class="module-block" style="left:35mm;top:8.89mm;width:42mm;height:53mm"><span>VCC</span></div>
+    <div class="module-block" style="left:35mm;top:64.89mm;width:42mm;height:54.72mm"><span>PO</span></div>
+    <div class="module-block" style="left:80mm;top:8.89mm;width:55mm;height:110.72mm"><span>VCW</span></div>
+    <div class="module-block" style="left:138mm;top:8.89mm;width:36mm;height:53mm"><span>WF</span></div>
+    <div class="module-block" style="left:138mm;top:64.89mm;width:36mm;height:54.72mm"><span>VCA</span></div>
+    <div class="module-block" style="left:177mm;top:8.89mm;width:28mm;height:53mm"><span>EG</span></div>
+    <div class="module-block" style="left:177mm;top:64.89mm;width:28mm;height:54.72mm"><span>LFO</span></div>
+    <div class="module-block" style="left:208mm;top:8.89mm;width:22mm;height:53mm"><span>ATT</span></div>
+    <div class="module-block" style="left:208mm;top:64.89mm;width:22mm;height:54.72mm"><span>VCA ×2</span></div>
     <div class="knob-large" aria-label="Large MXR-style knob"></div>
     <div class="mounting-slot left top" aria-label="Top-left mounting slot"></div>
     <div class="mounting-slot right top" aria-label="Top-right mounting slot"></div>
