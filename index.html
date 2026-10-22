@@ -16,7 +16,7 @@ select{width:100%;font-size:11px}.ports{margin-top:auto;display:flex;flex-wrap:w
 .console{width:min(100%,850px);border:1px solid #555;padding:14px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
 .console input{accent-color:#ddd}.notes{font-size:12px;color:#aaa;max-width:850px;line-height:1.6}
 @media(max-width:700px){.panel{aspect-ratio:auto;min-height:400px}.modules{grid-template-columns:repeat(2,1fr)}.module{min-height:150px}}
-</style></head><body>
+.patchbay{width:min(100%,850px);padding:15px;border:1px solid #555;background:#101010}.patchgrid{display:flex;justify-content:space-between;position:relative;min-height:155px}.patchcolumn{display:flex;flex-direction:column;gap:8px;z-index:1}.jack{border:2px solid #888;border-radius:18px;background:#222;color:#eee;padding:7px;min-width:120px}.jack.selected{border-color:#e9b65b}.jack.connected{box-shadow:inset 0 0 0 2px #5a9}.cables{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.patchhelp{font-size:11px;color:#aaa;margin:10px 0}</style></head><body>
 <h1>PCS-100 / PHASE CASTING SYNTHESIZER</h1><p>40HP × 3U · Concept prototype · VCP → VCW → VCA · Dual EG</p>
 <main class="panel"><div class="head"><b>HÜGELTON　PCS-100</b><span>40HP / PHASE CASTING</span></div>
 <div class="modules">
@@ -51,11 +51,31 @@ select{width:100%;font-size:11px}.ports{margin-top:auto;display:flex;flex-wrap:w
 </div><label class="control">POLARITY<select data-p="inv2"><option value="0">NORMAL</option><option value="1">INVERT</option></select></label>
 <div class="ports"><span class="port">TRIG</span><span class="port">EG 2 OUT</span></div></section>
 </div></main>
-<div class="console"><button id="audio">START AUDIO</button><button id="gate">GATE ON</button><label>VOLUME <input id="volume" type="range" min="0" max=".5" step=".01" value=".15"></label><label>EG 2 → WARP <input id="depth" type="range" min="0" max="1" step=".01" value=".3"></label><span id="status">Stopped</span></div>
-<p class="notes">Keyboard: A W S E D F T G Y H U J K. EG 1 → VCA, EG 2 → WARP/DCW modulation. OUT A/B are proposed hardware outputs; the browser preview is mono. AR(D) LOOP uses attack → hold → release cycling while gate is held. VCW is a single CZ/PD voice: SHAPE continuously transitions SAW → PULSE → REZ SAW → REZ TRI → REZ TRAP → REZ PULSE → REZ DOUBLE SAW. WARP is DCW-style timbre control; WINDOW adjusts the trapezoid window edge. Intermediate SHAPE positions are linear waveform crossfades (not a mode switch). No VCF or separate Q. The 40HP layout is conceptual, not a mechanical clearance drawing.</p>
+<section class="patchbay"><h3>CV PATCH BAY</h3><div class="patchgrid" id="patchgrid"><svg class="cables" id="cables"></svg><div class="patchcolumn"><b>OUTPUTS</b><button class="jack" data-src="eg1">EG 1 OUT</button><button class="jack" data-src="eg2">EG 2 OUT</button></div><div class="patchcolumn"><b>INPUTS</b><button class="jack" data-dst="level">VCA LEVEL</button><button class="jack" data-dst="warp">VCW WARP</button><button class="jack" data-dst="shape">VCW SHAPE</button><button class="jack" data-dst="width">VCW WINDOW</button><button class="jack" data-dst="freq">VCP FREQ</button></div></div><p class="patchhelp">Select an output, then an input to patch. Click an input without selecting an output to unplug. Each input accepts one source.</p><button id="resetpatch">RESET PATCH</button>　<label>CV DEPTH <input id="cvdepth" type="range" min="0" max="1" step=".01" value=".5"></label></section><div class="console"><button id="audio">START AUDIO</button><button id="gate">GATE ON</button><label>VOLUME <input id="volume" type="range" min="0" max=".5" step=".01" value=".15"></label><span id="status">Stopped</span></div>
+<p class="notes">Keyboard: A W S E D F T G Y H U J K. Patch bay routes EG1/EG2 to VCA level, VCW WARP/SHAPE/WINDOW or VCP frequency. OUT A/B are proposed hardware outputs; the browser preview is mono. AR(D) LOOP uses attack → hold → release cycling while gate is held. VCW is a single CZ/PD voice: SHAPE continuously transitions SAW → PULSE → REZ SAW → REZ TRI → REZ TRAP → REZ PULSE → REZ DOUBLE SAW. WARP is DCW-style timbre control; WINDOW adjusts the trapezoid window edge. Intermediate SHAPE positions are linear waveform crossfades (not a mode switch). No VCF or separate Q. The 40HP layout is conceptual, not a mechanical clearance drawing.</p>
 <script>
 const P={};document.querySelectorAll('[data-p]').forEach(el=>{const key=el.dataset.p;P[key]=el.type==='range'?+el.value:el.value;const out=el.parentElement.querySelector('output');function sync(){P[key]=el.type==='range'?+el.value:el.value;if(out)out.textContent=el.value}el.addEventListener('input',sync);sync()});
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));let ctx,processor,gain,phase=0,clockPhase=0,note=110,gate=false,held=false;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const patch={level:'eg1',warp:'eg2'};let selectedSource=null;
+const grid=document.getElementById('patchgrid'),svg=document.getElementById('cables');
+function redrawPatch(){
+ document.querySelectorAll('.jack').forEach(el=>{el.classList.toggle('selected',!!selectedSource&&el.dataset.src===selectedSource);el.classList.toggle('connected',!!el.dataset.dst&&!!patch[el.dataset.dst])});
+ const box=grid.getBoundingClientRect();svg.setAttribute('viewBox','0 0 '+box.width+' '+box.height);svg.innerHTML='';
+ Object.entries(patch).forEach(([dst,src])=>{
+  const from=document.querySelector('[data-src="'+src+'"]').getBoundingClientRect(),to=document.querySelector('[data-dst="'+dst+'"]').getBoundingClientRect();
+  const x1=from.right-box.left,y1=from.top+from.height/2-box.top,x2=to.left-box.left,y2=to.top+to.height/2-box.top;
+  const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+  path.setAttribute('d','M'+x1+' '+y1+' C'+(x1+(x2-x1)*.4)+' '+(y1+22)+','+(x2-(x2-x1)*.4)+' '+(y2+22)+','+x2+' '+y2);
+  path.setAttribute('stroke',src==='eg1'?'#e9b65b':'#72b9c6');path.setAttribute('stroke-width','3');path.setAttribute('fill','none');svg.appendChild(path);
+ });
+}
+document.querySelectorAll('[data-src]').forEach(el=>el.onclick=()=>{selectedSource=el.dataset.src;redrawPatch()});
+document.querySelectorAll('[data-dst]').forEach(el=>el.onclick=()=>{const dst=el.dataset.dst;if(selectedSource){patch[dst]=selectedSource;selectedSource=null}else delete patch[dst];redrawPatch()});
+document.getElementById('resetpatch').onclick=()=>{Object.keys(patch).forEach(k=>delete patch[k]);Object.assign(patch,{level:'eg1',warp:'eg2'});selectedSource=null;redrawPatch()};
+window.addEventListener('resize',redrawPatch);requestAnimationFrame(redrawPatch);
+function cvValue(dst,e1,e2){const source=patch[dst];if(!source)return 0;const n=source==='eg1'?1:2;const value=source==='eg1'?e1:e2;return P['inv'+n]==='1'?1-value:value}
+function cvBipolar(dst,e1,e2){return patch[dst]?(cvValue(dst,e1,e2)-.5)*+document.getElementById('cvdepth').value:0}
+let ctx,processor,gain,phase=0,clockPhase=0,note=110,gate=false,held=false;
 const EG=()=>({value:0,stage:'off',elapsed:0,start:0});const envs=[EG(),EG()];
 function trigger(on){if(on&&!gate){for(const e of envs){e.stage='attack';e.start=e.value;e.elapsed=0}}if(!on&&gate){for(const e of envs){e.stage='release';e.start=e.value;e.elapsed=0}}gate=on;document.getElementById('gate').textContent=held?'GATE OFF':'GATE ON'}
 function envelope(e,n,dt){const a=P['a'+n],d=P['d'+n],s=P['s'+n],r=P['r'+n],loop=P['type'+n]==='ard';e.elapsed+=dt;
@@ -65,7 +85,7 @@ else if(e.stage==='decay'){e.value=1+(s-1)*clamp(e.elapsed/d,0,1);if(e.elapsed>=
 else if(e.stage==='sustain')e.value=s;
 else if(e.stage==='release'){e.value=e.start*(1-clamp(e.elapsed/r,0,1));if(e.elapsed>=r){e.value=0;e.elapsed=0;if(loop&&gate){e.start=0;e.stage='attack'}else e.stage='off'}}
 return e.value}
-function wave(p,warp){
+function wave(p,warp,shape,width){
  // One CZ/PD voice. SHAPE continuously crossfades adjacent PD/resonance
  // waveforms (not modes); WARP is their shared DCW-style timbre control.
  const d=clamp(warp,0,1);
@@ -76,7 +96,7 @@ function wave(p,warp){
  const pdPulse=Math.sin(2*Math.PI*Math.min(1,p/pulseEnd));
  const rezDcw=d*(56000/65536)*(44000/65536);
  const carrier=Math.sin(2*Math.PI*p*(1+7*rezDcw))*.625;
- const x=p, edge=clamp(P.width,.05,.95)*.5;
+ const x=p, edge=clamp(width,.05,.95)*.5;
  const windows=[
   1-x,
   x<.5?2*x:2*(1-x),
@@ -85,16 +105,21 @@ function wave(p,warp){
   1-((x*2)%1)
  ];
  const waves=[pdSaw,pdPulse,...windows.map(w=>carrier*w)];
- const pos=clamp(P.shape,0,1)*(waves.length-1);
+ const pos=clamp(shape,0,1)*(waves.length-1);
  const i=Math.min(waves.length-2,Math.floor(pos));
  const t=pos-i;
  return waves[i]*(1-t)+waves[i+1]*t;
 }
-function render(e){const out=e.outputBuffer.getChannelData(0),sr=e.outputBuffer.sampleRate;for(let i=0;i<out.length;i++){const f=clamp(P.frequency*Math.pow(2,P.octave)*note/110,1,sr*.4);// Oversampled clock phase accumulator: the previous version advanced the
-// waveform only at the note frequency, causing severe low-bit/alias artifacts.
-// Increment now controls phase speed while preserving audible pitch near its default.
+function render(e){const out=e.outputBuffer.getChannelData(0),sr=e.outputBuffer.sampleRate;for(let i=0;i<out.length;i++){
+const e1=envelope(envs[0],1,1/sr),e2=envelope(envs[1],2,1/sr);
+const f=clamp(P.frequency*Math.pow(2,P.octave+cvBipolar('freq',e1,e2)*2)*note/110,1,sr*.4);
 phase=(phase+f/sr*(P.increment/.063))%1;
-const e1=envelope(envs[0],1,1/sr),e2=envelope(envs[1],2,1/sr);const mod=P.inv2==='1'?1-e2:e2;const warp=clamp(P.warp+(mod-.5)*+document.getElementById('depth').value,0,1);const amp=P.inv1==='1'?1-e1:e1;out[i]=wave(phase,warp)*amp*P.level*.55}}
+const warp=clamp(P.warp+cvBipolar('warp',e1,e2),0,1);
+const shape=clamp(P.shape+cvBipolar('shape',e1,e2),0,1);
+const width=clamp(P.width+cvBipolar('width',e1,e2),.05,.95);
+const amp=patch.level?cvValue('level',e1,e2):1;
+out[i]=wave(phase,warp,shape,width)*amp*P.level*.55;
+}}
 document.getElementById('audio').onclick=async()=>{if(!ctx){ctx=new(window.AudioContext||window.webkitAudioContext)();processor=ctx.createScriptProcessor(1024,0,1);gain=ctx.createGain();gain.gain.value=+document.getElementById("volume").value;processor.onaudioprocess=render;processor.connect(gain);gain.connect(ctx.destination)}if(ctx.state==='running'){await ctx.suspend();trigger(false);held=false}else await ctx.resume();document.getElementById('audio').textContent=ctx.state==='running'?'STOP AUDIO':'START AUDIO';document.getElementById('status').textContent=ctx.state};
 document.getElementById('gate').onclick=()=>{held=!held;trigger(held)};document.getElementById('volume').oninput=e=>{if(gain)gain.gain.value=+e.target.value};document.getElementById('volume').dispatchEvent(new Event('input'));
 const keys='awsedftgyhujk',down=new Set();window.addEventListener('keydown',e=>{if(e.repeat||e.target.closest('input,select,button'))return;const idx=keys.indexOf(e.key.toLowerCase());if(idx<0)return;down.add(e.key.toLowerCase());note=110*Math.pow(2,idx/12);trigger(true)});window.addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(!down.delete(k))return;if(down.size)note=110*Math.pow(2,keys.indexOf([...down].at(-1))/12);else trigger(held)});
