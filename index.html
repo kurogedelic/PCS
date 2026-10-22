@@ -1,240 +1,78 @@
-<!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PCS-100 — Split architecture panel study</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PCS-100 — 40HP Phase Casting Synth</title>
 <style>
-  * { box-sizing:border-box }
-  html,body{margin:0;min-height:100%}
-  body{display:grid;place-items:center;min-height:100vh;overflow:auto;background:#101010}
-  .panel{--ink:#f1f1ed;position:relative;flex:none;width:243.84mm;height:128.5mm;background:#0a0a0a;color:var(--ink);font-family:Jost,Arial,sans-serif;box-shadow:inset 0 0 0 .22mm #343434;overflow:hidden}
-  .patch-field{position:absolute;left:13.97mm;right:16.51mm;top:9.2mm;height:51.3mm;border:.34mm solid #6f6f6f;border-radius:2.6mm;pointer-events:none}
-  .patch-heading{position:absolute;left:16.6mm;top:6.8mm;padding:0 2mm;background:#0a0a0a;font-size:2.8mm;letter-spacing:.18em}
-  .patch-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-  .port{position:absolute;width:8mm;height:8mm;transform:translate(-50%,-50%);border:1mm solid #e8e8e6;border-radius:50%;background:#000;box-shadow:0 0 0 .3mm #626262}
-  .port-label{position:absolute;transform:translateX(-50%);white-space:nowrap;font-size:2.28mm;font-weight:500;letter-spacing:.015em}
-  .port-label.above{transform:translate(-50%,-50%)}.port-label.below{transform:translateX(-50%)}
-  .module-band{position:absolute;top:63mm;height:8mm;display:flex;align-items:center;justify-content:center;gap:1.1mm;background:#282828;border-top:.3mm solid #aaa;border-bottom:.2mm solid #777;white-space:nowrap}
-  .module-band b{font-size:3mm;font-weight:600;letter-spacing:.06em}
-  .module-band span{font-size:2.05mm;color:#ccc;letter-spacing:.02em}
-  .knob{position:absolute;transform:translate(-50%,-50%);border-radius:50%;background:#262626;border:.7mm solid #868686}
-  .knob:before{content:"";position:absolute;left:50%;top:8%;transform:translateX(-50%);width:.7mm;height:27%;background:#fff;border-radius:.2mm}
-  .knob.large{width:25mm;height:25mm;border-width:1mm;background:#1b1b1b}
-  .knob.medium{width:17mm;height:17mm}
-  .knob.small{width:9mm;height:9mm}
-  .knob.switch{width:7mm;height:7mm;border:.5mm solid #999}
-  .knob.switch:before{height:5.2mm;top:-2.3mm;width:1.3mm;border-radius:1mm}
-  .control-label{position:absolute;transform:translateX(-50%);white-space:nowrap;font-size:2.22mm;font-weight:500;letter-spacing:.015em}
-  .shape-icons{position:absolute;left:90.2mm;top:94.2mm;width:42.5mm;height:6mm;color:#e6e6e6}
-  .shape-slider{position:absolute;left:90.6mm;top:102mm;width:42mm;height:6mm}
-  .shape-slider .track{position:absolute;left:0;right:0;top:2.6mm;height:.8mm;background:#bbb}
-  .shape-slider:before,.shape-slider:after{content:"";position:absolute;height:5.2mm;top:.3mm;width:.25mm;background:#888}
-  .shape-slider:before{left:0}.shape-slider:after{right:0}
-  .slider-handle{position:absolute;left:50%;top:0;transform:translateX(-50%);width:6mm;height:6mm;background:#343434;border:.65mm solid #ddd;border-radius:.55mm}
-  .shape-label{position:absolute;left:111.6mm;top:110.1mm;transform:translateX(-50%);white-space:nowrap;font-size:2.25mm;letter-spacing:.035em}
-  .footer-line{position:absolute;left:14mm;right:16.5mm;bottom:11.5mm;border-top:.25mm solid #555}
-  .panel-title{position:absolute;left:16mm;bottom:4.4mm;font-size:3.3mm;letter-spacing:.12em;font-weight:600}
-  .panel-subtitle{position:absolute;right:16mm;bottom:4.7mm;font-size:2.35mm;letter-spacing:.12em;color:#aaa}
-  .panel-logo{position:absolute;left:50%;bottom:2.2mm;width:9mm;height:auto;transform:translateX(-50%);color:#ddd}
-  .mounting-slot{position:absolute;width:6mm;height:3.2mm;transform:translate(-50%,-50%);border:.35mm solid #aaa;border-radius:1.6mm;background:#0a0a0a}
-  .mounting-slot.left{left:7.5mm}.mounting-slot.right{left:calc(100% - 7.5mm)}
-  .mounting-slot.top{top:3mm}.mounting-slot.bottom{top:calc(100% - 3mm)}
-
-  body{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:18px;padding:20px}
-  .audio-console{width:min(100%,900px);color:#e8e8e6;font:14px Jost,Arial,sans-serif;border:1px solid #494949;border-radius:8px;padding:14px 18px;background:#1b1b1b}
-  .audio-row{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
-  .audio-console button{background:#eee;color:#111;border:0;border-radius:4px;padding:9px 16px;font:600 13px Jost;cursor:pointer}
-  .audio-console button:focus-visible,.panel .knob:focus-visible{outline:2px solid #fff;outline-offset:3px}
-  .audio-console .status{color:#aaa;font-size:12px}
-  .audio-console label{display:flex;align-items:center;gap:7px}
-  .audio-console input[type=range]{accent-color:#e9e9e9;width:130px}
-  .audio-console .hint{margin:9px 0 0;color:#aaa;font-size:12px}
-  .panel .knob{cursor:ns-resize;touch-action:none}
-  .panel .knob:after{content:"";position:absolute;inset:-2mm;border-radius:50%}
-  .shape-slider{cursor:ew-resize;touch-action:none}
-  .slider-handle{pointer-events:none}
-  .panel .knob.active{border-color:white;box-shadow:0 0 0 .5mm #777}
-  @media print{body{background:white}.panel{box-shadow:none}}
-</style>
-</head>
-<body>
-  <main class="panel" aria-label="PCS-100 48HP Eurorack front panel — separated patch and performance controls">
-    <div class="patch-field"></div>
-    <div class="patch-heading">PATCH / SIGNAL</div>
-    
-    <svg class="patch-lines" viewBox="0 0 243.84 128.5" aria-hidden="true">
-      <g fill="none" stroke="#969696" stroke-width=".34" stroke-linejoin="round">
-        <!-- Direct module-to-module routes: visual only, normalisation subject to electronics design -->
-        <path d="M40.64 44 H58.42"/>
-        <path d="M76.20 44 H93.98"/>
-        <path d="M129.54 44 H147.32"/>
-        <path d="M147.32 24 H165.10"/>
-        <path d="M22.86 34 H40.64" opacity=".4"/>
-        <!-- The staircase differentiates the PO from a continuously interpolated ramp. -->
-        <path d="M53.5 113 H58 V110 H62.5 V107 H67 V104 H71.5 V101 H76 V113 H80" stroke="#777" stroke-width=".45"/>
-      </g>
-      <g fill="#999" font-family="Jost,sans-serif" font-size="2.55" text-anchor="middle">
-        <text x="49.53" y="40.7">CLOCK</text><text x="85.09" y="40.7">PHASE</text><text x="138.43" y="40.7">WAVE</text>
-      </g>
-      <!-- Thin functional separators are confined to the patch field. -->
-      <g stroke="#464646" stroke-width=".28">
-        <path d="M49.53 12 V59"/>
-        <path d="M85.09 12 V59"/>
-        <path d="M138.43 12 V59"/>
-        <path d="M156.21 12 V59"/>
-        <path d="M173.99 12 V59"/>
-        <path d="M209.55 12 V59"/>
-      </g>
-    </svg>
-    <div class="port" style="left:22.86mm;top:24mm" aria-label="VCC V/OCT"></div><div class="port-label above" style="left:22.86mm;top:13.8mm">V/OCT</div>
-    <div class="port" style="left:40.64mm;top:24mm" aria-label="VCC FM"></div><div class="port-label above" style="left:40.64mm;top:13.8mm">FM</div>
-    <div class="port" style="left:40.64mm;top:44mm" aria-label="VCC CLK OUT"></div><div class="port-label below" style="left:40.64mm;top:50.3mm">CLK OUT</div>
-    <div class="port" style="left:58.42mm;top:24mm" aria-label="PO RESET"></div><div class="port-label above" style="left:58.42mm;top:13.8mm">RESET</div>
-    <div class="port" style="left:76.2mm;top:24mm" aria-label="PO INC"></div><div class="port-label above" style="left:76.2mm;top:13.8mm">INC</div>
-    <div class="port" style="left:58.42mm;top:44mm" aria-label="PO CLK IN"></div><div class="port-label below" style="left:58.42mm;top:50.3mm">CLK IN</div>
-    <div class="port" style="left:76.2mm;top:44mm" aria-label="PO PHASE OUT"></div><div class="port-label below" style="left:76.2mm;top:50.3mm">PHASE OUT</div>
-    <div class="port" style="left:93.98mm;top:24mm" aria-label="VCW WARP"></div><div class="port-label above" style="left:93.98mm;top:13.8mm">WARP</div>
-    <div class="port" style="left:111.76mm;top:24mm" aria-label="VCW WIDTH"></div><div class="port-label above" style="left:111.76mm;top:13.8mm">WIDTH</div>
-    <div class="port" style="left:129.54mm;top:24mm" aria-label="VCW RES"></div><div class="port-label above" style="left:129.54mm;top:13.8mm">RES</div>
-    <div class="port" style="left:93.98mm;top:44mm" aria-label="VCW PHASE IN"></div><div class="port-label below" style="left:93.98mm;top:50.3mm">PHASE IN</div>
-    <div class="port" style="left:129.54mm;top:44mm" aria-label="VCW WIN OUT"></div><div class="port-label below" style="left:129.54mm;top:50.3mm">WIN OUT</div>
-    <div class="port" style="left:147.32mm;top:24mm" aria-label="WF WF IN"></div><div class="port-label above" style="left:147.32mm;top:13.8mm">WF IN</div>
-    <div class="port" style="left:147.32mm;top:44mm" aria-label="WF WF OUT"></div><div class="port-label below" style="left:147.32mm;top:50.3mm">WF OUT</div>
-    <div class="port" style="left:165.1mm;top:24mm" aria-label="VCA VCA IN"></div><div class="port-label above" style="left:165.1mm;top:13.8mm">VCA IN</div>
-    <div class="port" style="left:165.1mm;top:44mm" aria-label="VCA OUT"></div><div class="port-label below" style="left:165.1mm;top:50.3mm">OUT</div>
-    <div class="port" style="left:182.88mm;top:24mm" aria-label="EG GATE"></div><div class="port-label above" style="left:182.88mm;top:13.8mm">GATE</div>
-    <div class="port" style="left:200.66mm;top:24mm" aria-label="EG EG OUT"></div><div class="port-label above" style="left:200.66mm;top:13.8mm">EG OUT</div>
-    <div class="port" style="left:218.44mm;top:24mm" aria-label="UTIL LFO OUT"></div><div class="port-label above" style="left:218.44mm;top:13.8mm">LFO OUT</div>
-    <div class="port" style="left:218.44mm;top:44mm" aria-label="UTIL ATT I/O"></div><div class="port-label below" style="left:218.44mm;top:50.3mm">ATT I/O</div>
-    <div class="module-band" style="left:14.62mm;width:34.26mm"><b>VCC</b><span>CLOCK</span></div>
-    <div class="module-band" style="left:50.18mm;width:34.26mm"><b>PO</b><span>PHASE</span></div>
-    <div class="module-band" style="left:85.74mm;width:52.04mm"><b>VCW</b><span>WINDOW</span></div>
-    <div class="module-band" style="left:139.08mm;width:16.48mm"><b>WF</b></div>
-    <div class="module-band" style="left:156.86mm;width:16.48mm"><b>VCA</b></div>
-    <div class="module-band" style="left:174.64mm;width:34.26mm"><b>EG</b><span>ENVELOPE</span></div>
-    <div class="module-band" style="left:210.2mm;width:16.48mm"><b>UTIL</b></div>
-    <div class="knob large" style="left:31.75mm;top:89mm" aria-label="FREQUENCY"></div><div class="control-label" style="left:31.75mm;top:104.5mm">FREQUENCY</div>
-    <div class="knob small" style="left:46.5mm;top:109mm" aria-label="FINE"></div><div class="control-label" style="left:46.5mm;top:115.2mm">FINE</div>
-    <div class="knob switch" style="left:18.5mm;top:109mm" aria-label="OCT"></div><div class="control-label" style="left:18.5mm;top:115.2mm">OCT</div>
-    <div class="knob medium" style="left:67.31mm;top:89mm" aria-label="INCREMENT"></div><div class="control-label" style="left:67.31mm;top:99.2mm">INCREMENT</div>
-    <div class="knob small" style="left:93.98mm;top:83mm" aria-label="WARP"></div><div class="control-label" style="left:93.98mm;top:89.2mm">WARP</div>
-    <div class="knob small" style="left:111.76mm;top:83mm" aria-label="WIDTH"></div><div class="control-label" style="left:111.76mm;top:89.2mm">WIDTH</div>
-    <div class="knob small" style="left:129.54mm;top:83mm" aria-label="RESO"></div><div class="control-label" style="left:129.54mm;top:89.2mm">RESO</div>
-    <div class="knob small" style="left:147.32mm;top:91mm" aria-label="FOLD"></div><div class="control-label" style="left:147.32mm;top:97.2mm">FOLD</div>
-    <div class="knob small" style="left:165.1mm;top:91mm" aria-label="LEVEL"></div><div class="control-label" style="left:165.1mm;top:97.2mm">LEVEL</div>
-    <div class="knob small" style="left:182.88mm;top:83mm" aria-label="ATTACK"></div><div class="control-label" style="left:182.88mm;top:89.2mm">ATTACK</div>
-    <div class="knob small" style="left:200.66mm;top:83mm" aria-label="DECAY"></div><div class="control-label" style="left:200.66mm;top:89.2mm">DECAY</div>
-    <div class="knob small" style="left:182.88mm;top:104mm" aria-label="SUSTAIN"></div><div class="control-label" style="left:182.88mm;top:110.2mm">SUSTAIN</div>
-    <div class="knob small" style="left:200.66mm;top:104mm" aria-label="RELEASE"></div><div class="control-label" style="left:200.66mm;top:110.2mm">RELEASE</div>
-    <div class="knob small" style="left:218.44mm;top:83mm" aria-label="LFO"></div><div class="control-label" style="left:218.44mm;top:89.2mm">LFO</div>
-    <div class="knob small" style="left:218.44mm;top:104mm" aria-label="ATT"></div><div class="control-label" style="left:218.44mm;top:110.2mm">ATT</div>
-    <div class="shape-icons" aria-hidden="true"><svg viewBox="0 0 44 7" width="100%" height="100%"><g stroke="currentColor" stroke-width=".55" fill="none" stroke-linecap="round"><path d="M1 4 Q3 0 5 4 T9 4"/><path d="M14 5 L20 2 L20 5"/><path d="M26 5 V2 H31 V5"/><path d="M36 5 H38 V2 H41 V5 H43"/></g></svg></div><div class="shape-slider"><span class="track"></span><span class="slider-handle"></span></div><div class="shape-label">SHAPE — CONTINUOUS MORPH</div>
-    <div class="footer-line"></div>
-    <div class="panel-title">PCS-100</div><div class="panel-subtitle">PHASE CASTING SYNTHESIZER</div>
-    <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="panel-logo" aria-label="Hügelton Instruments logo" role="img"
-                            viewBox="0 0 8.504 6.373"
-                        >
-                            <g data-name="Print">
-                                <path fill="currentColor"
-                                    d="M8.226 4.705c-.082 0-.261-.17-.396-.628-.263-.893-.695-1.026-.929-1.026s-.665.133-.929 1.026c-.135.458-.314.628-.369.633-.002-.002-.236-.153-.415-1.208-.19-1.121-.497-1.666-.936-1.666s-.746.545-.937 1.666c-.13.767-.289 1.056-.357 1.156-.086-.159-.271-.647-.417-2.056C2.303.309 1.933 0 1.602 0S.901.309.663 2.602C.498 4.197.283 4.612.217 4.705h-.218v.556h.278c.331 0 .701-.309.938-2.602.131-1.257.291-1.781.386-1.993.095.211.255.735.386 1.993.238 2.293.608 2.602.939 2.602.44 0 .746-.545.937-1.666.161-.949.366-1.167.368-1.203.041.035.247.254.408 1.203.191 1.121.497 1.666.937 1.666.234 0 .665-.133.929-1.026.135-.458.314-.628.396-.628s.261.17.396.628c.263.893.695 1.027.929 1.027h.278v-.556h-.278ZM0 5.817h8.504v.556H0z"
-                                ></path>
-                            </g>
-                        </svg>
-    <div class="mounting-slot left top"></div><div class="mounting-slot right top"></div>
-    <div class="mounting-slot left bottom"></div><div class="mounting-slot right bottom"></div>
-  </main>
-
-  <section class="audio-console" aria-label="PCS-100 audio prototype">
-    <div class="audio-row">
-      <button id="audio-toggle" type="button">START AUDIO</button>
-      <button id="note-toggle" type="button">GATE ON</button>
-      <label>OUTPUT <input id="master-volume" type="range" min="0" max="100" value="28"><output id="volume-value">28%</output></label>
-      <span class="status" id="audio-status">Audio stopped</span>
-    </div>
-    <p class="hint">パネルのノブは上下ドラッグ、SHAPEは左右ドラッグ。PCはキー A–K で演奏できます。音量を下げてから開始してください。</p>
-  </section>
-  <script>
-  (() => {
-    const params={frequency:110,fine:0,oct:0,increment:0.0625,warp:0.5,width:0.5,reso:0.2,shape:0.35,level:0.75,attack:0.02,decay:0.22,sustain:0.65,release:0.35,lfo:0.3,att:0.5,fold:0};
-    const map={
-      FREQUENCY:{key:'frequency',min:30,max:1000,curve:'log'},
-      FINE:{key:'fine',min:-1,max:1},
-      OCT:{key:'oct',min:-2,max:2,steps:5},
-      INCREMENT:{key:'increment',min:0.005,max:0.45,curve:'log'},
-      WARP:{key:'warp',min:0,max:1},
-      WIDTH:{key:'width',min:0.05,max:0.95},
-      RESO:{key:'reso',min:0,max:1},
-      LEVEL:{key:'level',min:0,max:1},
-      ATTACK:{key:'attack',min:0.002,max:2,curve:'log'},
-      DECAY:{key:'decay',min:0.005,max:3,curve:'log'},
-      SUSTAIN:{key:'sustain',min:0,max:1},
-      RELEASE:{key:'release',min:0.005,max:4,curve:'log'},
-      LFO:{key:'lfo',min:0.05,max:15,curve:'log'},
-      ATT:{key:'att',min:0,max:1}
-    };
-    const normalized=(v,m)=>m.curve==='log'?Math.log(v/m.min)/Math.log(m.max/m.min):(v-m.min)/(m.max-m.min);
-    const denormalized=(t,m)=>m.curve==='log'?m.min*Math.pow(m.max/m.min,t):m.min+(m.max-m.min)*t;
-    const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-    const knobs=[...document.querySelectorAll('.panel .knob')];
-    for(const knob of knobs){
-      const m=map[knob.getAttribute('aria-label')];if(!m){knob.style.cursor='default';continue}
-      const update=()=>{const t=normalized(params[m.key],m);knob.style.setProperty('--rotation',((t-.5)*270)+'deg');knob.style.transform='translate(-50%,-50%) rotate('+((t-.5)*270)+'deg)';knob.title=m.key.toUpperCase()+': '+Number(params[m.key].toFixed(3));knob.setAttribute('role','slider');knob.setAttribute('tabindex','0');knob.setAttribute('aria-valuemin',m.min);knob.setAttribute('aria-valuemax',m.max);knob.setAttribute('aria-valuenow',Number(params[m.key].toFixed(3)))};
-      update();
-      knob.addEventListener('pointerdown',e=>{e.preventDefault();knob.setPointerCapture(e.pointerId);knob.classList.add('active');const y=e.clientY,base=normalized(params[m.key],m);const move=ev=>{let t=clamp(base+(y-ev.clientY)/180,0,1);if(m.steps)t=Math.round(t*(m.steps-1))/(m.steps-1);params[m.key]=denormalized(t,m);update()};const end=()=>{knob.classList.remove('active');knob.removeEventListener('pointermove',move);knob.removeEventListener('pointerup',end);knob.removeEventListener('pointercancel',end)};knob.addEventListener('pointermove',move);knob.addEventListener('pointerup',end);knob.addEventListener('pointercancel',end)});
-      knob.addEventListener('keydown',e=>{if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();let t=normalized(params[m.key],m)+(e.key==='ArrowUp'||e.key==='ArrowRight'?.02:-.02);t=clamp(t,0,1);if(m.steps)t=Math.round(t*(m.steps-1))/(m.steps-1);params[m.key]=denormalized(t,m);update()});
-    }
-    const slider=document.querySelector('.shape-slider'),handle=slider.querySelector('.slider-handle');
-    function setShape(e){const r=slider.getBoundingClientRect();params.shape=clamp((e.clientX-r.left)/r.width,0,1);handle.style.left=(params.shape*100)+'%';slider.title='SHAPE: '+params.shape.toFixed(2)}
-    handle.style.left=(params.shape*100)+'%';
-    slider.addEventListener('pointerdown',e=>{slider.setPointerCapture(e.pointerId);setShape(e)});
-    slider.addEventListener('pointermove',e=>{if(slider.hasPointerCapture(e.pointerId))setShape(e)});
-    let ctx,processor,gain,clockPhase=0,phase=0,env=0,stage='off',gate=false,gateFromButton=false,noteHz=110,lfoPhase=0;
-    const status=document.getElementById('audio-status'),start=document.getElementById('audio-toggle'),gateButton=document.getElementById('note-toggle'),volume=document.getElementById('master-volume');
-    const keys='awsedftgyhujk',semitones=[0,1,2,3,4,5,6,7,8,9,10,11,12];
-    function setGate(on){if(on&&!gate)stage='attack';if(!on&&gate)stage='release';gate=on;gateButton.textContent=gateFromButton?'GATE OFF':'GATE ON'}
-    function waveform(p){
-      const warp=params.warp;
-      let q=p;
-      if(warp<.5)q=Math.pow(q,1+(.5-warp)*6);
-      else q=1-Math.pow(1-q,1+(warp-.5)*6);
-      const sine=Math.sin(2*Math.PI*q);
-      const saw=2*q-1;
-      const width=params.width;
-      const pulse=Math.tanh((q<width?1:-1)*3)*.85;
-      const resonant=Math.sin(2*Math.PI*q*(1+params.reso*8))*Math.sin(Math.PI*q);
-      const waves=[sine,saw,pulse,resonant],x=params.shape*3,i=Math.min(2,Math.floor(x)),t=x-i;
-      const mix=Math.cos(t*Math.PI/2)*waves[i]+Math.sin(t*Math.PI/2)*waves[i+1];
-      return Math.tanh(mix*1.1)*.78;
-    }
-    function render(e){
-      const out=e.outputBuffer.getChannelData(0),sr=e.outputBuffer.sampleRate;
-      for(let i=0;i<out.length;i++){
-        const clockHz=clamp(params.frequency*Math.pow(2,params.oct+params.fine/12)*(noteHz/110),1,sr*.45);
-        clockPhase+=clockHz/sr;
-        if(clockPhase>=1){clockPhase-=Math.floor(clockPhase);phase=(phase+params.increment)%1}
-        lfoPhase=(lfoPhase+params.lfo/sr)%1;
-        const lfo=1+.035*Math.sin(lfoPhase*2*Math.PI)*params.att;
-        if(stage==='attack'){env+=1/(Math.max(.002,params.attack)*sr);if(env>=1){env=1;stage='decay'}}
-        else if(stage==='decay'){env+=(params.sustain-env)/(Math.max(.005,params.decay)*sr);if(Math.abs(env-params.sustain)<.0005)stage='sustain'}
-        else if(stage==='sustain')env=params.sustain;
-        else if(stage==='release'){env+=(-env)/(Math.max(.005,params.release)*sr);if(env<.0001){env=0;stage='off'}}
-        out[i]=waveform(phase)*env*params.level*lfo;
-      }
-    }
-    start.addEventListener('click',async()=>{
-      if(!ctx){ctx=new (window.AudioContext||window.webkitAudioContext)();processor=ctx.createScriptProcessor(1024,0,1);gain=ctx.createGain();gain.gain.value=Number(volume.value)/100;processor.onaudioprocess=render;processor.connect(gain);gain.connect(ctx.destination)}
-      if(ctx.state==='running'){await ctx.suspend();start.textContent='START AUDIO';status.textContent='Audio stopped';setGate(false);gateFromButton=false}
-      else{await ctx.resume();start.textContent='STOP AUDIO';status.textContent='Audio running · '+ctx.sampleRate+' Hz'}
-    });
-    gateButton.addEventListener('click',()=>{gateFromButton=!gateFromButton;setGate(gateFromButton)});
-    volume.addEventListener('input',()=>{document.getElementById('volume-value').textContent=volume.value+'%';if(gain)gain.gain.value=Number(volume.value)/100});
-    const pressed=new Set();
-    window.addEventListener('keydown',e=>{if(e.repeat||e.target.matches('input,button'))return;const idx=keys.indexOf(e.key.toLowerCase());if(idx<0)return;pressed.add(e.key.toLowerCase());noteHz=110*Math.pow(2,semitones[idx]/12);setGate(true)});
-    window.addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(!pressed.has(k))return;pressed.delete(k);if(pressed.size){const last=[...pressed].at(-1);noteHz=110*Math.pow(2,semitones[keys.indexOf(last)]/12)}else setGate(gateFromButton)});
-  })();
-  </script>
-</body></html>
+*{box-sizing:border-box}body{margin:0;background:#171717;color:#eee;font:14px system-ui,sans-serif;padding:24px;display:grid;justify-items:center;gap:18px}
+h1{font-size:19px;margin:0}p{margin:0;color:#aaa}.panel{width:min(100%,850px);aspect-ratio:203.2/128.5;background:#101010;border:2px solid #666;padding:3% 4%;display:flex;flex-direction:column;gap:12px}
+.head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #666;padding-bottom:8px;letter-spacing:.12em}
+.modules{display:grid;grid-template-columns:1.1fr 1.35fr .6fr 1.1fr 1.1fr;gap:7px;flex:1;min-height:0}
+.module{border:1px solid #555;display:flex;flex-direction:column;padding:8px;gap:8px;min-width:0}
+.module h2{font-size:12px;margin:0;background:#333;text-align:center;padding:5px;letter-spacing:.08em}
+.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;align-content:start}
+.control{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;text-align:center;min-width:0}
+.control input[type=range]{width:100%;accent-color:#ddd}.control output{font-size:10px;color:#999}
+select,button{background:#252525;color:#eee;border:1px solid #888;border-radius:3px;padding:5px;cursor:pointer}
+select{width:100%;font-size:11px}.ports{margin-top:auto;display:flex;flex-wrap:wrap;gap:5px;justify-content:center}
+.port{font-size:9px;border:1px solid #999;border-radius:12px;padding:5px 6px;white-space:nowrap}
+.console{width:min(100%,850px);border:1px solid #555;padding:14px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.console input{accent-color:#ddd}.notes{font-size:12px;color:#aaa;max-width:850px;line-height:1.6}
+@media(max-width:700px){.panel{aspect-ratio:auto;min-height:400px}.modules{grid-template-columns:repeat(2,1fr)}.module{min-height:150px}}
+</style></head><body>
+<h1>PCS-100 / PHASE CASTING SYNTHESIZER</h1><p>40HP × 3U · Concept prototype · VCP → VCW → VCA · Dual EG</p>
+<main class="panel"><div class="head"><b>HÜGELTON　PCS-100</b><span>40HP / PHASE CASTING</span></div>
+<div class="modules">
+<section class="module"><h2>VCP</h2><div class="controls">
+<label class="control">FREQ<input data-p="frequency" type="range" min="30" max="1000" value="110"><output></output></label>
+<label class="control">INCREMENT<input data-p="increment" type="range" min="0.005" max="0.45" step="0.001" value="0.063"><output></output></label>
+<label class="control">OCT<input data-p="octave" type="range" min="-2" max="2" step="1" value="0"><output></output></label>
+</div><div class="ports"><span class="port">V/OCT</span><span class="port">CLK IN</span><span class="port">PHASE OUT</span></div></section>
+<section class="module"><h2>VCW</h2><div class="controls">
+<label class="control">WARP<input data-p="warp" type="range" min="0" max="1" step=".01" value=".5"><output></output></label>
+<label class="control">WIDTH<input data-p="width" type="range" min=".05" max=".95" step=".01" value=".5"><output></output></label>
+<label class="control">RESO<input data-p="reso" type="range" min="0" max="1" step=".01" value=".25"><output></output></label>
+<label class="control">SHAPE<input data-p="shape" type="range" min="0" max="1" step=".01" value=".3"><output></output></label>
+</div><div class="ports"><span class="port">PHASE IN</span><span class="port">WAVE OUT</span></div></section>
+<section class="module"><h2>VCA</h2><div class="controls">
+<label class="control">LEVEL<input data-p="level" type="range" min="0" max="1" step=".01" value=".8"><output></output></label>
+</div><div class="ports"><span class="port">OUT A</span><span class="port">OUT B</span></div></section>
+<section class="module"><h2>EG 1</h2><select data-p="type1"><option value="adsr">ADSR</option><option value="ard">AR(D) LOOP</option></select>
+<div class="controls">
+<label class="control">A<input data-p="a1" type="range" min=".005" max="2" step=".005" value=".03"><output></output></label>
+<label class="control">D / HOLD<input data-p="d1" type="range" min=".01" max="3" step=".01" value=".25"><output></output></label>
+<label class="control">S<input data-p="s1" type="range" min="0" max="1" step=".01" value=".65"><output></output></label>
+<label class="control">R<input data-p="r1" type="range" min=".01" max="4" step=".01" value=".3"><output></output></label>
+</div><label class="control">POLARITY<select data-p="inv1"><option value="0">NORMAL</option><option value="1">INVERT</option></select></label>
+<div class="ports"><span class="port">GATE</span><span class="port">EG 1 OUT</span></div></section>
+<section class="module"><h2>EG 2</h2><select data-p="type2"><option value="adsr">ADSR</option><option value="ard" selected>AR(D) LOOP</option></select>
+<div class="controls">
+<label class="control">A<input data-p="a2" type="range" min=".005" max="2" step=".005" value=".02"><output></output></label>
+<label class="control">D / HOLD<input data-p="d2" type="range" min=".01" max="3" step=".01" value=".22"><output></output></label>
+<label class="control">S<input data-p="s2" type="range" min="0" max="1" step=".01" value=".5"><output></output></label>
+<label class="control">R<input data-p="r2" type="range" min=".01" max="4" step=".01" value=".32"><output></output></label>
+</div><label class="control">POLARITY<select data-p="inv2"><option value="0">NORMAL</option><option value="1">INVERT</option></select></label>
+<div class="ports"><span class="port">TRIG</span><span class="port">EG 2 OUT</span></div></section>
+</div></main>
+<div class="console"><button id="audio">START AUDIO</button><button id="gate">GATE ON</button><label>VOLUME <input id="volume" type="range" min="0" max=".5" step=".01" value=".15"></label><label>EG 2 → RESO <input id="depth" type="range" min="0" max="1" step=".01" value=".3"></label><span id="status">Stopped</span></div>
+<p class="notes">Keyboard: A W S E D F T G Y H U J K. EG 1 → VCA, EG 2 → resonance modulation. OUT A/B are proposed hardware outputs; the browser preview is mono. AR(D) LOOP uses attack → hold → release cycling while gate is held. RESO is a phase-synchronous, windowed resonance approximation, not an analog VCF or self-oscillating Q model. The 40HP layout is conceptual, not a mechanical clearance drawing.</p>
+<script>
+const P={};document.querySelectorAll('[data-p]').forEach(el=>{const key=el.dataset.p;P[key]=el.type==='range'?+el.value:el.value;const out=el.parentElement.querySelector('output');function sync(){P[key]=el.type==='range'?+el.value:el.value;if(out)out.textContent=el.value}el.addEventListener('input',sync);sync()});
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));let ctx,processor,gain,phase=0,clockPhase=0,note=110,gate=false,held=false;
+const EG=()=>({value:0,stage:'off',elapsed:0,start:0});const envs=[EG(),EG()];
+function trigger(on){if(on&&!gate){for(const e of envs){e.stage='attack';e.start=e.value;e.elapsed=0}}if(!on&&gate){for(const e of envs){e.stage='release';e.start=e.value;e.elapsed=0}}gate=on;document.getElementById('gate').textContent=held?'GATE OFF':'GATE ON'}
+function envelope(e,n,dt){const a=P['a'+n],d=P['d'+n],s=P['s'+n],r=P['r'+n],loop=P['type'+n]==='ard';e.elapsed+=dt;
+if(e.stage==='attack'){e.value=e.start+(1-e.start)*clamp(e.elapsed/a,0,1);if(e.elapsed>=a){e.value=1;e.elapsed=0;e.stage=loop?'hold':'decay'}}
+else if(e.stage==='hold'){e.value=1;if(e.elapsed>=d){e.elapsed=0;e.start=1;e.stage='release'}}
+else if(e.stage==='decay'){e.value=1+(s-1)*clamp(e.elapsed/d,0,1);if(e.elapsed>=d)e.stage='sustain'}
+else if(e.stage==='sustain')e.value=s;
+else if(e.stage==='release'){e.value=e.start*(1-clamp(e.elapsed/r,0,1));if(e.elapsed>=r){e.value=0;e.elapsed=0;if(loop&&gate){e.start=0;e.stage='attack'}else e.stage='off'}}
+return e.value}
+function wave(p,reso){const warp=P.warp;const q=warp<.5?Math.pow(p,1+(.5-warp)*5):1-Math.pow(1-p,1+(warp-.5)*5);
+const base=[Math.sin(2*Math.PI*q),2*q-1,q<P.width?1:-1];const x=P.shape*2,i=Math.min(1,Math.floor(x)),t=x-i;const dry=base[i]*(1-t)+base[i+1]*t;
+// Phase-synchronous decaying resonance: more RESO increases coherent ringing and narrows the window.
+const cycles=1+reso*12,decay=2+reso*12;const ring=Math.sin(2*Math.PI*cycles*q)*Math.exp(-decay*q)*Math.sqrt(1+decay*.4);
+return Math.tanh((dry*(1-reso*.8)+ring*reso)*.9)}
+function render(e){const out=e.outputBuffer.getChannelData(0),sr=e.outputBuffer.sampleRate;for(let i=0;i<out.length;i++){const f=clamp(P.frequency*Math.pow(2,P.octave)*note/110,1,sr*.4);clockPhase+=f/sr;if(clockPhase>=1){clockPhase-=Math.floor(clockPhase);phase=(phase+P.increment)%1}
+const e1=envelope(envs[0],1,1/sr),e2=envelope(envs[1],2,1/sr);const mod=P.inv2==='1'?1-e2:e2;const reso=clamp(P.reso+(.5-mod)*+document.getElementById('depth').value,0,1);const amp=P.inv1==='1'?1-e1:e1;out[i]=wave(phase,reso)*amp*P.level*.55}}
+document.getElementById('audio').onclick=async()=>{if(!ctx){ctx=new(window.AudioContext||window.webkitAudioContext)();processor=ctx.createScriptProcessor(1024,0,1);gain=ctx.createGain();processor.onaudioprocess=render;processor.connect(gain);gain.connect(ctx.destination)}if(ctx.state==='running'){await ctx.suspend();trigger(false);held=false}else await ctx.resume();document.getElementById('audio').textContent=ctx.state==='running'?'STOP AUDIO':'START AUDIO';document.getElementById('status').textContent=ctx.state};
+document.getElementById('gate').onclick=()=>{held=!held;trigger(held)};document.getElementById('volume').oninput=e=>{if(gain)gain.gain.value=+e.target.value};document.getElementById('volume').dispatchEvent(new Event('input'));
+const keys='awsedftgyhujk',down=new Set();window.addEventListener('keydown',e=>{if(e.repeat||e.target.closest('input,select,button'))return;const idx=keys.indexOf(e.key.toLowerCase());if(idx<0)return;down.add(e.key.toLowerCase());note=110*Math.pow(2,idx/12);trigger(true)});window.addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(!down.delete(k))return;if(down.size)note=110*Math.pow(2,keys.indexOf([...down].at(-1))/12);else trigger(held)});
+</script></body></html>
