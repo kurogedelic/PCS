@@ -51,8 +51,8 @@ select{width:100%;font-size:11px}.ports{margin-top:auto;display:flex;flex-wrap:w
 </div><label class="control">POLARITY<select data-p="inv2"><option value="0">NORMAL</option><option value="1">INVERT</option></select></label>
 <div class="ports"><span class="port">TRIG</span><span class="port">EG 2 OUT</span></div></section>
 </div></main>
-<section class="patchbay"><h3>CV PATCH BAY</h3><div class="patchgrid" id="patchgrid"><svg class="cables" id="cables"></svg><div class="patchcolumn"><b>OUTPUTS</b><button class="jack" data-src="eg1">EG 1 OUT</button><button class="jack" data-src="eg2">EG 2 OUT</button></div><div class="patchcolumn"><b>INPUTS</b><button class="jack" data-dst="level">VCA LEVEL</button><button class="jack" data-dst="warp">VCW WARP</button><button class="jack" data-dst="shape">VCW SHAPE</button><button class="jack" data-dst="width">VCW WINDOW</button><button class="jack" data-dst="freq">VCP FREQ</button></div></div><p class="patchhelp">Select an output, then an input to patch. Click an input without selecting an output to unplug. Each input accepts one source.</p><button id="resetpatch">RESET PATCH</button>　<label>CV DEPTH <input id="cvdepth" type="range" min="0" max="1" step=".01" value=".5"></label></section><div class="console"><button id="audio">START AUDIO</button><button id="gate">GATE ON</button><label>VOLUME <input id="volume" type="range" min="0" max=".5" step=".01" value=".15"></label><span id="status">Stopped</span></div>
-<p class="notes">Keyboard: A W S E D F T G Y H U J K. Patch bay routes EG1/EG2 to VCA level, VCW WARP/SHAPE/WINDOW or VCP frequency. OUT A/B are proposed hardware outputs; the browser preview is mono. AR(D) LOOP uses attack → hold → release cycling while gate is held. VCW is a single CZ/PD voice: SHAPE continuously transitions SAW → PULSE → REZ SAW → REZ TRI → REZ TRAP → REZ PULSE → REZ DOUBLE SAW. WARP is DCW-style timbre control; WINDOW adjusts the trapezoid window edge. Intermediate SHAPE positions are linear waveform crossfades (not a mode switch). No VCF or separate Q. The 40HP layout is conceptual, not a mechanical clearance drawing.</p>
+<section class="patchbay"><h3>VCW WAVEFORM PREVIEW</h3><canvas id="scope" width="800" height="120" style="width:100%;height:110px;background:#191919;border:1px solid #444"></canvas><p class="patchhelp">One phase cycle · SHAPE interpolates the underlying phase or window functions.</p><h3>CV PATCH BAY</h3><div class="patchgrid" id="patchgrid"><svg class="cables" id="cables"></svg><div class="patchcolumn"><b>OUTPUTS</b><button class="jack" data-src="eg1">EG 1 OUT</button><button class="jack" data-src="eg2">EG 2 OUT</button></div><div class="patchcolumn"><b>INPUTS</b><button class="jack" data-dst="level">VCA LEVEL</button><button class="jack" data-dst="warp">VCW WARP</button><button class="jack" data-dst="shape">VCW SHAPE</button><button class="jack" data-dst="width">VCW WINDOW</button><button class="jack" data-dst="freq">VCP FREQ</button></div></div><p class="patchhelp">Select an output, then an input to patch. Click an input without selecting an output to unplug. Each input accepts one source.</p><button id="resetpatch">RESET PATCH</button>　<label>CV DEPTH <input id="cvdepth" type="range" min="0" max="1" step=".01" value=".5"></label></section><div class="console"><button id="audio">START AUDIO</button><button id="gate">GATE ON</button><label>VOLUME <input id="volume" type="range" min="0" max=".5" step=".01" value=".15"></label><span id="status">Stopped</span></div>
+<p class="notes">Keyboard: A W S E D F T G Y H U J K. Patch bay routes EG1/EG2 to VCA level, VCW WARP/SHAPE/WINDOW or VCP frequency. OUT A/B are proposed hardware outputs; the browser preview is mono. AR(D) LOOP uses attack → hold → release cycling while gate is held. VCW is a single CZ/PD voice: SHAPE continuously transitions SAW → PULSE → REZ SAW → REZ TRI → REZ TRAP → REZ PULSE → REZ DOUBLE SAW. WARP is DCW-style timbre control; WINDOW adjusts the trapezoid window edge. SHAPE interpolates PD phase maps in WAVE, and window functions in REZ; only the WAVE-to-REZ boundary uses a short crossfade. No VCF or separate Q. The 40HP layout is conceptual, not a mechanical clearance drawing.</p>
 <script>
 const P={};document.querySelectorAll('[data-p]').forEach(el=>{const key=el.dataset.p;P[key]=el.type==='range'?+el.value:el.value;const out=el.parentElement.querySelector('output');function sync(){P[key]=el.type==='range'?+el.value:el.value;if(out)out.textContent=el.value}el.addEventListener('input',sync);sync()});
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -73,6 +73,8 @@ document.querySelectorAll('[data-src]').forEach(el=>el.onclick=()=>{selectedSour
 document.querySelectorAll('[data-dst]').forEach(el=>el.onclick=()=>{const dst=el.dataset.dst;if(selectedSource){patch[dst]=selectedSource;selectedSource=null}else delete patch[dst];redrawPatch()});
 document.getElementById('resetpatch').onclick=()=>{Object.keys(patch).forEach(k=>delete patch[k]);Object.assign(patch,{level:'eg1',warp:'eg2'});selectedSource=null;redrawPatch()};
 window.addEventListener('resize',redrawPatch);requestAnimationFrame(redrawPatch);
+const scope=document.getElementById('scope'),sc=scope.getContext('2d');
+function drawScope(){const w=scope.width,h=scope.height;sc.clearRect(0,0,w,h);sc.strokeStyle='#555';sc.beginPath();sc.moveTo(0,h/2);sc.lineTo(w,h/2);sc.stroke();sc.strokeStyle='#b7ded7';sc.lineWidth=2;sc.beginPath();for(let x=0;x<w;x++){const v=wave(x/w,P.warp,P.shape,P.width);const y=h/2-v*h*.43;if(!x)sc.moveTo(x,y);else sc.lineTo(x,y)}sc.stroke();requestAnimationFrame(drawScope)}requestAnimationFrame(drawScope);
 function cvValue(dst,e1,e2){const source=patch[dst];if(!source)return 0;const n=source==='eg1'?1:2;const value=source==='eg1'?e1:e2;return P['inv'+n]==='1'?1-value:value}
 function cvBipolar(dst,e1,e2){return patch[dst]?(cvValue(dst,e1,e2)-.5)*+document.getElementById('cvdepth').value:0}
 let ctx,processor,gain,phase=0,clockPhase=0,note=110,gate=false,held=false;
@@ -86,29 +88,32 @@ else if(e.stage==='sustain')e.value=s;
 else if(e.stage==='release'){e.value=e.start*(1-clamp(e.elapsed/r,0,1));if(e.elapsed>=r){e.value=0;e.elapsed=0;if(loop&&gate){e.start=0;e.stage='attack'}else e.stage='off'}}
 return e.value}
 function wave(p,warp,shape,width){
- // One CZ/PD voice. SHAPE continuously crossfades adjacent PD/resonance
- // waveforms (not modes); WARP is their shared DCW-style timbre control.
- const d=clamp(warp,0,1);
+ // SHAPE: interpolate PD phase maps within the ordinary-wave region;
+ // interpolate window functions under ONE resonant carrier in REZ.
+ // Only the PD-to-REZ boundary uses an output crossfade.
+ const d=clamp(warp,0,1),pos=clamp(shape,0,1)*6;
  const bend=.5+d*.499;
- const q=p<bend?.5*p/bend:.5+.5*(p-bend)/(1-bend);
- const pdSaw=Math.sin(2*Math.PI*q);
- const pulseEnd=1-d*.95;
- const pdPulse=Math.sin(2*Math.PI*Math.min(1,p/pulseEnd));
+ const sawPhase=p<bend?.5*p/bend:.5+.5*(p-bend)/(1-bend);
+ const pulseEnd=Math.max(.025,1-d*.95);
+ const pulsePhase=Math.min(1,p/pulseEnd);
+ const pdMix=clamp(pos,0,1);
+ const pdPhase=sawPhase*(1-pdMix)+pulsePhase*pdMix;
+ const pd=Math.sin(2*Math.PI*pdPhase);
  const rezDcw=d*(56000/65536)*(44000/65536);
  const carrier=Math.sin(2*Math.PI*p*(1+7*rezDcw))*.625;
- const x=p, edge=clamp(width,.05,.95)*.5;
+ const edge=clamp(width,.05,.95)*.5;
  const windows=[
-  1-x,
-  x<.5?2*x:2*(1-x),
-  x<edge?x/edge:x>1-edge?(1-x)/edge:1,
-  x<.5?1:0,
-  1-((x*2)%1)
+  1-p,
+  p<.5?2*p:2*(1-p),
+  p<edge?p/edge:p>1-edge?(1-p)/edge:1,
+  p<.5?1:0,
+  1-((p*2)%1)
  ];
- const waves=[pdSaw,pdPulse,...windows.map(w=>carrier*w)];
- const pos=clamp(shape,0,1)*(waves.length-1);
- const i=Math.min(waves.length-2,Math.floor(pos));
- const t=pos-i;
- return waves[i]*(1-t)+waves[i+1]*t;
+ const rezPos=clamp(pos-2,0,4),idx=Math.min(3,Math.floor(rezPos)),t=rezPos-idx;
+ const rez=carrier*(windows[idx]*(1-t)+windows[idx+1]*t);
+ // Crossfade only where the generating principles differ.
+ const bridge=clamp(pos-1,0,1);
+ return pd*(1-bridge)+rez*bridge;
 }
 function render(e){const out=e.outputBuffer.getChannelData(0),sr=e.outputBuffer.sampleRate;for(let i=0;i<out.length;i++){
 const e1=envelope(envs[0],1,1/sr),e2=envelope(envs[1],2,1/sr);
