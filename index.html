@@ -52,7 +52,7 @@ select{width:100%;font-size:11px}.ports{margin-top:auto;display:flex;flex-wrap:w
 <div class="ports"><span class="port">TRIG</span><span class="port">EG 2 OUT</span></div></section>
 </div></main>
 <div class="console"><button id="audio">START AUDIO</button><button id="gate">GATE ON</button><label>VOLUME <input id="volume" type="range" min="0" max=".5" step=".01" value=".15"></label><label>EG 2 → RESO <input id="depth" type="range" min="0" max="1" step=".01" value=".3"></label><span id="status">Stopped</span></div>
-<p class="notes">Keyboard: A W S E D F T G Y H U J K. EG 1 → VCA, EG 2 → resonance modulation. OUT A/B are proposed hardware outputs; the browser preview is mono. AR(D) LOOP uses attack → hold → release cycling while gate is held. RESONANCE uses CZ-inspired phase-synchronous damped oscillations. WARP shifts the resonant spectral region; RESONANCE changes its prominence. It is not a VCF or exact CZ emulation. The 40HP layout is conceptual, not a mechanical clearance drawing.</p>
+<p class="notes">Keyboard: A W S E D F T G Y H U J K. EG 1 → VCA, EG 2 → resonance modulation. OUT A/B are proposed hardware outputs; the browser preview is mono. AR(D) LOOP uses attack → hold → release cycling while gate is held. RESONANCE uses CZ-inspired phase-synchronous windowed harmonics. WARP shifts the resonant spectral region; RESONANCE changes its prominence. It is not a VCF or exact CZ emulation. The 40HP layout is conceptual, not a mechanical clearance drawing.</p>
 <script>
 const P={};document.querySelectorAll('[data-p]').forEach(el=>{const key=el.dataset.p;P[key]=el.type==='range'?+el.value:el.value;const out=el.parentElement.querySelector('output');function sync(){P[key]=el.type==='range'?+el.value:el.value;if(out)out.textContent=el.value}el.addEventListener('input',sync);sync()});
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));let ctx,processor,gain,phase=0,clockPhase=0,note=110,gate=false,held=false;
@@ -66,24 +66,26 @@ else if(e.stage==='sustain')e.value=s;
 else if(e.stage==='release'){e.value=e.start*(1-clamp(e.elapsed/r,0,1));if(e.elapsed>=r){e.value=0;e.elapsed=0;if(loop&&gate){e.start=0;e.stage='attack'}else e.stage='off'}}
 return e.value}
 function wave(p,reso){
- // CZ-inspired: phase-distorted readout and a damped high-frequency oscillation
- // within each fundamental cycle. WARP sets the spectral peak position,
- // RESONANCE sets the amount of resonant waveform mixed in.
+ // Continuous phase (no sample-and-hold stepping) and CZ-style resonant wave.
+ // A short, smooth window gates an integer-harmonic carrier so the
+ // periodic waveform joins cleanly at its boundaries.
  const warp=P.warp;
- const q=warp<.5?Math.pow(p,1+(.5-warp)*4):1-Math.pow(1-p,1+(warp-.5)*4);
+ const q=warp<.5?Math.pow(p,1+(.5-warp)*3):1-Math.pow(1-p,1+(warp-.5)*3);
  const base=[Math.sin(2*Math.PI*q),2*q-1,q<P.width?1:-1];
  const x=P.shape*2,i=Math.min(1,Math.floor(x)),t=x-i;
  const dry=base[i]*(1-t)+base[i+1]*t;
- // Approximate CZ resonance: pitch-synchronous decaying sinusoidal burst.
- // Keep its peak location separately controllable from the resonance amount.
- const cycles=2+Math.pow(warp,1.5)*18;
- const decay=5.5;
- const window=Math.exp(-decay*p)*(1-Math.exp(-75*p));
- const burst=Math.sin(2*Math.PI*cycles*p)*window*2.5;
+ // CZ-inspired resonant harmonic peak, not a literal filter.
+ // Integer carrier harmonics avoid an audible phase discontinuity.
+ const harmonics=Math.round(2+Math.pow(warp,1.3)*14);
+ const window=Math.pow(Math.sin(Math.PI*p),2);
+ const ring=Math.sin(2*Math.PI*harmonics*p)*window;
  const wet=clamp(reso,0,1);
- return Math.tanh((dry*(1-wet)+burst*wet)*1.05)*.82;
+ return Math.tanh((dry*(1-wet)+ring*wet*1.6)*1.1)*.82;
 }
-function render(e){const out=e.outputBuffer.getChannelData(0),sr=e.outputBuffer.sampleRate;for(let i=0;i<out.length;i++){const f=clamp(P.frequency*Math.pow(2,P.octave)*note/110,1,sr*.4);clockPhase+=f/sr;if(clockPhase>=1){clockPhase-=Math.floor(clockPhase);phase=(phase+P.increment)%1}
+function render(e){const out=e.outputBuffer.getChannelData(0),sr=e.outputBuffer.sampleRate;for(let i=0;i<out.length;i++){const f=clamp(P.frequency*Math.pow(2,P.octave)*note/110,1,sr*.4);// Oversampled clock phase accumulator: the previous version advanced the
+// waveform only at the note frequency, causing severe low-bit/alias artifacts.
+// Increment now controls phase speed while preserving audible pitch near its default.
+phase=(phase+f/sr*(P.increment/.063))%1;
 const e1=envelope(envs[0],1,1/sr),e2=envelope(envs[1],2,1/sr);const mod=P.inv2==='1'?1-e2:e2;const reso=clamp(P.reso+(.5-mod)*+document.getElementById('depth').value,0,1);const amp=P.inv1==='1'?1-e1:e1;out[i]=wave(phase,reso)*amp*P.level*.55}}
 document.getElementById('audio').onclick=async()=>{if(!ctx){ctx=new(window.AudioContext||window.webkitAudioContext)();processor=ctx.createScriptProcessor(1024,0,1);gain=ctx.createGain();processor.onaudioprocess=render;processor.connect(gain);gain.connect(ctx.destination)}if(ctx.state==='running'){await ctx.suspend();trigger(false);held=false}else await ctx.resume();document.getElementById('audio').textContent=ctx.state==='running'?'STOP AUDIO':'START AUDIO';document.getElementById('status').textContent=ctx.state};
 document.getElementById('gate').onclick=()=>{held=!held;trigger(held)};document.getElementById('volume').oninput=e=>{if(gain)gain.gain.value=+e.target.value};document.getElementById('volume').dispatchEvent(new Event('input'));
