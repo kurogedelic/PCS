@@ -27,9 +27,9 @@ select{width:100%;font-size:11px}.ports{margin-top:auto;display:flex;flex-wrap:w
 </div><div class="ports"><span class="port">V/OCT</span><span class="port">CLK IN</span><span class="port">PHASE OUT</span></div></section>
 <section class="module"><h2>VCW</h2><div class="controls">
 <label class="control">WARP<input data-p="warp" type="range" min="0" max="1" step=".01" value=".5"><output></output></label>
-<label class="control">WIDTH<input data-p="width" type="range" min=".05" max=".95" step=".01" value=".5"><output></output></label>
-<label class="control">RESONANCE<input data-p="reso" type="range" min="0" max="1" step=".01" value=".25"><output></output></label>
-<label class="control">SHAPE<input data-p="shape" type="range" min="0" max="1" step=".01" value=".3"><output></output></label>
+<label class="control">WIDTH<input data-p="pulseWidth" type="range" min=".05" max=".95" step=".01" value=".5"><output></output></label>
+<label class="control">WINDOW WIDTH<input data-p="width" type="range" min=".05" max=".95" step=".01" value=".5"><output></output></label>
+<label class="control">SHAPE<input data-p="shape" type="range" min="0" max="1" step=".01" value=".3"><output></output></label><label class="control">MODE<select data-p="mode"><option value="rez" selected>REZ / CZ</option><option value="wave">WAVE / PD</option></select></label><label class="control">REZ WINDOW<select data-p="rezWindow"><option value="saw">SAW</option><option value="tri">TRI</option><option value="trap">TRAP</option><option value="pulse">PULSE</option><option value="dbl">DOUBLE SAW</option></select></label>
 </div><div class="ports"><span class="port">PHASE IN</span><span class="port">WAVE OUT</span></div></section>
 <section class="module"><h2>VCA</h2><div class="controls">
 <label class="control">LEVEL<input data-p="level" type="range" min="0" max="1" step=".01" value=".8"><output></output></label>
@@ -51,8 +51,8 @@ select{width:100%;font-size:11px}.ports{margin-top:auto;display:flex;flex-wrap:w
 </div><label class="control">POLARITY<select data-p="inv2"><option value="0">NORMAL</option><option value="1">INVERT</option></select></label>
 <div class="ports"><span class="port">TRIG</span><span class="port">EG 2 OUT</span></div></section>
 </div></main>
-<div class="console"><button id="audio">START AUDIO</button><button id="gate">GATE ON</button><label>VOLUME <input id="volume" type="range" min="0" max=".5" step=".01" value=".15"></label><label>EG 2 → RESO <input id="depth" type="range" min="0" max="1" step=".01" value=".3"></label><span id="status">Stopped</span></div>
-<p class="notes">Keyboard: A W S E D F T G Y H U J K. EG 1 → VCA, EG 2 → resonance modulation. OUT A/B are proposed hardware outputs; the browser preview is mono. AR(D) LOOP uses attack → hold → release cycling while gate is held. RESONANCE uses CZ-inspired phase-synchronous windowed harmonics. WARP shifts the resonant spectral region; RESONANCE changes its prominence. It is not a VCF or exact CZ emulation. The 40HP layout is conceptual, not a mechanical clearance drawing.</p>
+<div class="console"><button id="audio">START AUDIO</button><button id="gate">GATE ON</button><label>VOLUME <input id="volume" type="range" min="0" max=".5" step=".01" value=".15"></label><label>EG 2 → WARP <input id="depth" type="range" min="0" max="1" step=".01" value=".3"></label><span id="status">Stopped</span></div>
+<p class="notes">Keyboard: A W S E D F T G Y H U J K. EG 1 → VCA, EG 2 → WARP/DCW modulation. OUT A/B are proposed hardware outputs; the browser preview is mono. AR(D) LOOP uses attack → hold → release cycling while gate is held. REZ implements the phase-multiplied sine and SAW/TRI/TRAP/PULSE/DOUBLE SAW windows from CrispyZebra. WARP controls DCW; WIDTH controls the window span (default .5 is the reference shape). WAVE uses phase distortion. No dry/resonance mix or VCF; the separate Q control is deferred. The 40HP layout is conceptual, not a mechanical clearance drawing.</p>
 <script>
 const P={};document.querySelectorAll('[data-p]').forEach(el=>{const key=el.dataset.p;P[key]=el.type==='range'?+el.value:el.value;const out=el.parentElement.querySelector('output');function sync(){P[key]=el.type==='range'?+el.value:el.value;if(out)out.textContent=el.value}el.addEventListener('input',sync);sync()});
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));let ctx,processor,gain,phase=0,clockPhase=0,note=110,gate=false,held=false;
@@ -65,29 +65,42 @@ else if(e.stage==='decay'){e.value=1+(s-1)*clamp(e.elapsed/d,0,1);if(e.elapsed>=
 else if(e.stage==='sustain')e.value=s;
 else if(e.stage==='release'){e.value=e.start*(1-clamp(e.elapsed/r,0,1));if(e.elapsed>=r){e.value=0;e.elapsed=0;if(loop&&gate){e.start=0;e.stage='attack'}else e.stage='off'}}
 return e.value}
-function wave(p,reso){
- // Continuous phase (no sample-and-hold stepping) and CZ-style resonant wave.
- // A short, smooth window gates an integer-harmonic carrier so the
- // periodic waveform joins cleanly at its boundaries.
- const warp=P.warp;
- const q=warp<.5?Math.pow(p,1+(.5-warp)*3):1-Math.pow(1-p,1+(warp-.5)*3);
- const base=[Math.sin(2*Math.PI*q),2*q-1,q<P.width?1:-1];
- const x=P.shape*2,i=Math.min(1,Math.floor(x)),t=x-i;
- const dry=base[i]*(1-t)+base[i+1]*t;
- // CZ-inspired resonant harmonic peak, not a literal filter.
- // Integer carrier harmonics avoid an audible phase discontinuity.
- const harmonics=Math.round(2+Math.pow(warp,1.3)*14);
- const window=Math.pow(Math.sin(Math.PI*p),2);
- const ring=Math.sin(2*Math.PI*harmonics*p)*window;
- const wet=clamp(reso,0,1);
- return Math.tanh((dry*(1-wet)+ring*wet*1.6)*1.1)*.82;
+function wave(p,warp){
+ const d=clamp(warp,0,1);
+ if(P.mode==='rez'){
+  // Port of CrispyZebra's REZ oscillator equations:
+  // res_phase = phase + phase * rez_dcw * 7; window applied afterwards.
+  // Original scales cached DCW to 56000/65536, then 44000/65536.
+  const rezDcw=d*(56000/65536)*(44000/65536);
+  const carrier=Math.sin(2*Math.PI*p*(1+7*rezDcw));
+  let w;
+  const width=clamp(P.width,.05,.95);
+  // At width=.5 use the exact reference window.
+  const x=p;
+  switch(P.rezWindow){
+   case 'tri': {const peak=width;w=x<peak?x/peak:(1-x)/(1-peak);break}
+   case 'trap': {const edge=width*.5;w=x<edge?x/edge:x>1-edge?(1-x)/edge:1;break}
+   case 'pulse': w=x<width?1:0;break;
+   case 'dbl': {const q=(x*2)%1;w=1-q;break}
+   default: w=1-x;
+  }
+  return carrier*w*.625;
+ }
+ // WAVE: piecewise-linear phase distortion into a sine lookup.
+ const bend=.5+d*.499;
+ const q=p<bend?.5*p/bend:.5+.5*(p-bend)/(1-bend);
+ const sine=Math.sin(2*Math.PI*q);
+ const pulsePhase=p<1-P.pulseWidth?p/(1-P.pulseWidth):1;
+ const pulse=Math.sin(2*Math.PI*pulsePhase);
+ const shape=clamp(P.shape,0,1);
+ return sine*(1-shape)+pulse*shape;
 }
 function render(e){const out=e.outputBuffer.getChannelData(0),sr=e.outputBuffer.sampleRate;for(let i=0;i<out.length;i++){const f=clamp(P.frequency*Math.pow(2,P.octave)*note/110,1,sr*.4);// Oversampled clock phase accumulator: the previous version advanced the
 // waveform only at the note frequency, causing severe low-bit/alias artifacts.
 // Increment now controls phase speed while preserving audible pitch near its default.
 phase=(phase+f/sr*(P.increment/.063))%1;
-const e1=envelope(envs[0],1,1/sr),e2=envelope(envs[1],2,1/sr);const mod=P.inv2==='1'?1-e2:e2;const reso=clamp(P.reso+(.5-mod)*+document.getElementById('depth').value,0,1);const amp=P.inv1==='1'?1-e1:e1;out[i]=wave(phase,reso)*amp*P.level*.55}}
-document.getElementById('audio').onclick=async()=>{if(!ctx){ctx=new(window.AudioContext||window.webkitAudioContext)();processor=ctx.createScriptProcessor(1024,0,1);gain=ctx.createGain();processor.onaudioprocess=render;processor.connect(gain);gain.connect(ctx.destination)}if(ctx.state==='running'){await ctx.suspend();trigger(false);held=false}else await ctx.resume();document.getElementById('audio').textContent=ctx.state==='running'?'STOP AUDIO':'START AUDIO';document.getElementById('status').textContent=ctx.state};
+const e1=envelope(envs[0],1,1/sr),e2=envelope(envs[1],2,1/sr);const mod=P.inv2==='1'?1-e2:e2;const warp=clamp(P.warp+(mod-.5)*+document.getElementById('depth').value,0,1);const amp=P.inv1==='1'?1-e1:e1;out[i]=wave(phase,warp)*amp*P.level*.55}}
+document.getElementById('audio').onclick=async()=>{if(!ctx){ctx=new(window.AudioContext||window.webkitAudioContext)();processor=ctx.createScriptProcessor(1024,0,1);gain=ctx.createGain();gain.gain.value=+document.getElementById("volume").value;processor.onaudioprocess=render;processor.connect(gain);gain.connect(ctx.destination)}if(ctx.state==='running'){await ctx.suspend();trigger(false);held=false}else await ctx.resume();document.getElementById('audio').textContent=ctx.state==='running'?'STOP AUDIO':'START AUDIO';document.getElementById('status').textContent=ctx.state};
 document.getElementById('gate').onclick=()=>{held=!held;trigger(held)};document.getElementById('volume').oninput=e=>{if(gain)gain.gain.value=+e.target.value};document.getElementById('volume').dispatchEvent(new Event('input'));
 const keys='awsedftgyhujk',down=new Set();window.addEventListener('keydown',e=>{if(e.repeat||e.target.closest('input,select,button'))return;const idx=keys.indexOf(e.key.toLowerCase());if(idx<0)return;down.add(e.key.toLowerCase());note=110*Math.pow(2,idx/12);trigger(true)});window.addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(!down.delete(k))return;if(down.size)note=110*Math.pow(2,keys.indexOf([...down].at(-1))/12);else trigger(held)});
 </script></body></html>
